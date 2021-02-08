@@ -58,11 +58,11 @@ button.increment {
 }
 
 button.increment[data-value="1"] {
-	background-image: url("res/plus.svg");
+	background-image: url("../res/plus.svg");
 }
 
 button.increment[data-value="-1"] {
-	background-image: url("res/minus.svg");
+	background-image: url("../res/minus.svg");
 }
 
 div.input-value {
@@ -80,11 +80,11 @@ button.mode {
 }
 
 button.mode[data-value=mark] {
-	background-image: url("res/mark.svg");
+	background-image: url("../res/mark.svg");
 }
 
 button.mode[data-value=write] {
-	background-image: url("res/write.svg");
+	background-image: url("../res/write.svg");
 }
 
 button.option {
@@ -196,12 +196,17 @@ button.add-item {
 .clue-entry span.clue-label {
 	font-weight: bold;
 	font-size: calc(var(--ui-size) * 1.2);
-	margin-right: 4px;
-	cursor: grab;
+	margin-left: 4px;
+	margin-right: 8px;
 }
 
 .clue-entry div.clue-desc {
 	flex: 1 0;
+	cursor: text;
+}
+
+div.clue-desc::selection {
+	background-color: rgb(30, 144, 255);
 }
 
 button.delete {
@@ -210,5 +215,5 @@ button.delete {
 	border: none;
 	background-size: contain;
 	cursor: pointer;
-	background-image: url("res/delete.svg");
+	background-image: url("../res/delete.svg");
 }

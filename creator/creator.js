@@ -16,9 +16,9 @@ class PuzzleMaker {
         this.selectCell(0, 0);
     }
 
-    refreshGrid() {
+    refreshGrid(answers = null) {
         // Get old answers array and resize it
-        let answers = this.exportAnswers();
+        answers = answers || this.exportAnswers();
         for (let j = answers[0].length; j < this.width; j++) {
             for (let i = 0; i < answers.length; i++) {
                 answers[i].push("");
@@ -141,9 +141,9 @@ class PuzzleMaker {
             this.width = nw;
             this.height = nh;
             this.refreshGrid();
-            document.querySelector("div.input-value[data-property=width]").innerText = this.width;
-            document.querySelector("div.input-value[data-property=height]").innerText = this.height;
         }
+        document.querySelector("div.input-value[data-property=width]").innerText = this.width;
+        document.querySelector("div.input-value[data-property=height]").innerText = this.height;
     }
 
     renderSelection() {
@@ -214,7 +214,7 @@ class PuzzleMaker {
                 if (this.selection["position"] + 1 < this.clues[this.selection["index"]][dir].length) {
                     this.selection["position"]++;
                 } else {
-                    // Skip to next across clue
+                    // Skip to next clue
                     let idx = addIndex(this.selection["index"], 1);
                     while (!this.clues[idx][dir].length) idx = addIndex(idx, 1);
                     this.selection["index"] = idx;
@@ -224,11 +224,11 @@ class PuzzleMaker {
                 if (this.selection["position"] > 0) {
                     this.selection["position"]--;
                 } else {
-                    // Skip to previous across clue
+                    // Skip to previous clue
                     let idx = addIndex(this.selection["index"], -1);
                     while (!this.clues[idx][dir].length) idx = addIndex(idx, -1);
                     this.selection["index"] = idx;
-                    this.selection["position"] = this.clues[idx][dir].length - 1;
+                    this.selection["position"] = 0; // this.clues[idx][dir].length - 1;
                 }
             }
         } else {
@@ -265,11 +265,8 @@ class PuzzleMaker {
     addClue(dir) {
         let entry = document.createElement("div");
         entry.className = "clue-entry";
-        entry.addEventListener("dragend", clueDragEnd);
         let label = document.createElement("span");
         label.className = "clue-label";
-        label.addEventListener("dragstart", clueDragStart);
-        label.addEventListener("drag", clueDragStart);
         entry.appendChild(label);
         let clue = document.createElement("div");
         clue.setAttribute("contentEditable", "true");
@@ -283,6 +280,7 @@ class PuzzleMaker {
         document.querySelector("#clues-" + dir).appendChild(entry);
         entry.scrollIntoView();
         this.refreshClues();
+        return entry;
     }
 
     refreshClues() {
@@ -324,44 +322,131 @@ class PuzzleMaker {
 
     exportPuzzle(fmt) {
         this.refreshGrid();
-        let data = {
-            "width": this.width,
-            "height": this.height,
-            "grid": [],
-            "clues": {
-                "across": [],
-                "down": []
+        if (fmt == "json") {
+            let data = {
+                "width": this.width,
+                "height": this.height,
+                "grid": [],
+                "clues": {
+                    "across": [],
+                    "down": []
+                }
+            };
+            // Answers
+            for (let i = 0; i < this.height; i++) {
+                let row = [];
+                for (let j = 0; j < this.width; j++) {
+                    if (this.state[i][j]["cell"]) {
+                        if (!this.state[i][j]["value"]) return alert("Please fill in all of the cells.");
+                        row.push(this.state[i][j]["value"]);
+                    } else {
+                        row.push(null);
+                    }
+                }
+                data["grid"].push(row);
             }
-        };
-        // Answers
-        for (let i = 0; i < this.height; i++) {
-            let row = [];
-            for (let j = 0; j < this.width; j++) {
-                if (this.state[i][j]["cell"]) {
-                    if (!this.state[i][j]["value"]) return console.error("Incomplete puzzle!");
-                    row.push(this.state[i][j]["value"]);
-                } else {
-                    row.push(null);
+            // Clues
+            for (let entry of document.querySelectorAll("#clues-across .clue-entry")) {
+                if (entry.querySelector(".clue-label").innerText) {
+                    data["clues"]["across"].push(entry.querySelector(".clue-desc").innerText);
+                }  else {
+                    console.warn("Too many defined clues!");
                 }
             }
-            data["grid"].push(row);
+            for (let entry of document.querySelectorAll("#clues-down .clue-entry")) {
+                if (entry.querySelector(".clue-label").innerText) {
+                    data["clues"]["down"].push(entry.querySelector(".clue-desc").innerText);
+                }  else {
+                    console.warn("Too many defined clues!");
+                }
+            }
+            return JSON.stringify(data);
+        } else if (fmt == "rxf") {
+            return alert("RXF format support coming soon!");
+        } else if (fmt == "exf") {
+            let str = this.width + " " + this.height + "\n";
+            // Answers
+            for (let i = 0; i < this.height; i++) {
+                for (let j = 0; j < this.width; j++) {
+                    if (this.state[i][j]["cell"]) {
+                        if (!this.state[i][j]["value"]) return alert("Please fill in all of the cells.");
+                        str += this.state[i][j]["value"];
+                    } else {
+                        str += " ";
+                    }
+                }
+            }
+            str += "\n";
+            // Clues
+            str += "across\n";
+            for (let entry of document.querySelectorAll("#clues-across .clue-entry")) {
+                if (entry.querySelector(".clue-label").innerText) {
+                    str += entry.querySelector(".clue-desc").innerText + "\n";
+                }  else {
+                    console.warn("Too many defined clues!");
+                }
+            }
+            str += "down\n";
+            for (let entry of document.querySelectorAll("#clues-down .clue-entry")) {
+                if (entry.querySelector(".clue-label").innerText) {
+                    str += entry.querySelector(".clue-desc").innerText + "\n";
+                }  else {
+                    console.warn("Too many defined clues!");
+                }
+            }
+            return btoa(str);
         }
-        // Clues
-        for (let entry of document.querySelectorAll("#clues-across .clue-entry")) {
-            if (entry.querySelector(".clue-label").innerText) {
-                data["clues"]["across"].push(entry.querySelector(".clue-desc").innerText);
-            }  else {
-                console.warn("Too many defined clues!");
+    }
+
+    importPuzzle(data) {
+        let fmt;
+        if (data[0] == "{") fmt = "json";
+        else if (data.includes("\n")) fmt = "rxf";
+        else fmt = "exf";
+        if (fmt == "json") {
+            data = JSON.parse(data);
+            this.width = data["width"];
+            this.height = data["height"];
+            // Answers
+            this.refreshGrid(data["grid"]);
+            // Clues
+            for (let clue of data["clues"]["across"]) {
+                this.addClue("across").querySelector(".clue-desc").innerText = clue;
+            }
+            for (let clue of data["clues"]["down"]) {
+                this.addClue("down").querySelector(".clue-desc").innerText = clue;
+            }
+        } else if (fmt == "rxf") {
+            return alert("RXF format support coming soon!");
+        } else if (fmt == "exf") {
+            let str = atob(data);
+            let [dims, grid, ...clues] = str.split("\n");
+            let [w, h] = dims.split(" ");
+            this.width = parseInt(w);
+            this.height = parseInt(h);
+            this.resizeGrid(this.width, this.height);
+            let answers = [];
+            for (let i = 0; i < this.height; i++) {
+                let row = [];
+                for (let j = 0; j < this.width; j++) {
+                    if (grid[i * this.width + j] != " ") {
+                        row.push(grid[i * this.width + j]);
+                    } else {
+                        row.push(null);
+                    }
+                }
+                answers.push(row);
+            }
+            this.refreshGrid(answers);
+            let mode = "";
+            for (let clue of clues) {
+                if (clue == "across" || clue == "down") {
+                    mode = clue;
+                } else {
+                    this.addClue(mode).querySelector(".clue-desc").innerText = clue;
+                }
             }
         }
-        for (let entry of document.querySelectorAll("#clues-down .clue-entry")) {
-            if (entry.querySelector(".clue-label").innerText) {
-                data["clues"]["down"].push(entry.querySelector(".clue-desc").innerText);
-            }  else {
-                console.warn("Too many defined clues!");
-            }
-        }
-        return JSON.stringify(data);
     }
 }
 
@@ -399,18 +484,6 @@ function clickDelete(event) {
     event.preventDefault();
 }
 
-function clueDragStart(event) {
-    game.dragging = this.parentNode;
-}
-
-function clueDragEnd(event) {
-    if (game.dragging) {
-        // console.log(event.currentTarget.parentNode);
-        event.currentTarget.parentNode.insertBefore(game.dragging, this);
-        game.dragging = null;
-    }
-}
-
 for (let element of document.querySelectorAll("button.increment")) {
     element.addEventListener("click", function(event) {
         let width = game.width, height = game.height;
@@ -433,8 +506,41 @@ for (let element of document.querySelectorAll("button.option[data-action=export]
     element.addEventListener("click", function(event) {
         let data = game.exportPuzzle(this.getAttribute("data-value"));
         if (data) {
-            navigator.clipboard.writeText(data).then(() => { console.log("Successfully exported!") });
+            navigator.clipboard.writeText(data).then(function() {
+                alert("Successfully copied to clipboard!");
+            }, function() {
+                alert("Error: Failed to copy to clipboard.");
+            });
         }
+    });
+}
+
+for (let element of document.querySelectorAll("button.option[data-action=export]")) {
+    element.addEventListener("click", function(event) {
+        let data = game.exportPuzzle(this.getAttribute("data-value"));
+        if (data) {
+            navigator.clipboard.writeText(data).then(function() {
+                alert("Successfully copied to clipboard!");
+            }, function() {
+                alert("Error: Failed to copy to clipboard.");
+            });
+        }
+    });
+}
+
+for (let element of document.querySelectorAll("button.option[data-action=import]")) {
+    element.addEventListener("click", function(event) {
+        let pasteHandler = function(event) {
+            let data = (event.clipboardData || window.clipboardData).getData("text");
+            if (data) {
+                game.importPuzzle(data);
+                console.log("Imported clipboard data");
+            } else {
+                console.error("No clipboard data to import");
+            }
+            this.removeEventListener("paste", pasteHandler);
+        };
+        document.addEventListener("paste", pasteHandler);
     });
 }
 
