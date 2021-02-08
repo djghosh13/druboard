@@ -1,0 +1,214 @@
+:root{
+	--cell-size: 80px;
+	--ui-size: 20px;
+}
+
+::selection {
+	background-color: transparent;
+}
+
+html {
+	height: 100%;
+}
+
+body {
+	background-color: white;
+	width: 100%;
+	height: 100%;
+	cursor: default;
+	margin: 0;
+	display: flex;
+}
+
+/* Toolbar */
+
+#toolbar {
+	border-right: medium black solid;
+	display: flex;
+	flex-direction: column;
+	font-family: Georgia, 'Times New Roman', Times, serif;
+	font-size: var(--ui-size);
+	flex: 0 0 10%;
+}
+
+#toolbar .toolbar-item {
+	margin: 10% 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+h1.header {
+	font-size: calc(var(--ui-size) * 1.5);
+	text-align: center;
+	margin: auto;
+}
+
+div.input-row {
+	display: flex;
+	justify-content: space-around;
+}
+
+button.increment {
+	width: calc(var(--ui-size) * 2);
+	height: calc(var(--ui-size) * 2);
+	border: none;
+	background-size: contain;
+	cursor: pointer;
+}
+
+button.increment[data-value="1"] {
+	background-image: url("res/plus.svg");
+}
+
+button.increment[data-value="-1"] {
+	background-image: url("res/minus.svg");
+}
+
+div.input-value {
+	font-size: calc(var(--ui-size) * 2);
+	margin-top: calc(var(--ui-size) * -0.4);
+	text-align: center;
+}
+
+button.mode {
+	width: calc(var(--ui-size) * 3);
+	height: calc(var(--ui-size) * 3);
+	border: none;
+	background-size: contain;
+	cursor: pointer;
+}
+
+button.mode[data-value=mark] {
+	background-image: url("res/mark.svg");
+}
+
+button.mode[data-value=write] {
+	background-image: url("res/write.svg");
+}
+
+button.option {
+	margin: 4px;
+	border: medium black solid;
+	border-radius: 0;
+	background-color: white;
+	cursor: pointer;
+	font-family: Georgia, 'Times New Roman', Times, serif;
+	font-size: calc(var(--ui-size) * 1.3);
+	flex: 0 0;
+}
+
+/* Grid */
+
+#content {
+	height: 100%;
+	background-color: honeydew;
+	flex: 2 0 55%;
+}
+
+#main-grid, #main-grid .cell {
+	border: calc(var(--cell-size) * 0.05) solid black;
+	border-collapse: collapse;
+	font-family: Georgia, 'Times New Roman', Times, serif;
+	margin: var(--cell-size) auto;
+}
+
+.cell {
+	position: relative;
+	background-color: white;
+	text-align: center;
+	font-size: calc(var(--cell-size) * 0.5);
+	font-weight: normal;
+	width: var(--cell-size);
+	height: var(--cell-size);
+}
+
+.cell.selected-clue {
+	font-weight: bold;
+	background-color: rgb(150, 200, 255);
+}
+
+.cell.correct, .cell.selected-clue.correct {
+	background-color: lightgreen;
+}
+
+.cell.selected-clue.selected, .cell.selected-clue.correct.selected {
+	background-color: rgb(30, 144, 255);
+}
+
+.cell.black {
+	background-color: black;
+}
+
+.cell .cell-label {
+	position: absolute;
+	left: 5%;
+	top: 0;
+	line-height: 0.8em;
+	font-size: calc(var(--cell-size) * 0.35);
+	font-weight: normal;
+}
+
+/* Clues lists */
+
+.clues-section {
+	display: flex;
+	flex-direction: column;
+	border-left: medium black solid;
+	font-family: Georgia, 'Times New Roman', Times, serif;
+	font-size: var(--ui-size);
+	flex: 1 1 15%;
+}
+
+.clues-section h1.header {
+	border-bottom: medium black solid;
+	margin: 0;
+	padding: 8px 0;
+	flex: 0 0;
+}
+
+button.add-item {
+	border: none;
+	border-bottom: thin black solid;
+	border-radius: 0;
+	cursor: pointer;
+	font-family: Georgia, 'Times New Roman', Times, serif;
+	font-size: calc(var(--ui-size) * 1.3);
+	flex: 0 0;
+}
+
+.clues-section .clues-list {
+	flex: 1 0;
+	overflow-y: scroll;
+}
+
+.clues-list div.clue-entry {
+	display: flex;
+	align-items: center;
+	border-bottom: thin black solid;
+	padding: 4px 2px;
+}
+
+.clue-entry:hover {
+	background-color: rgb(150, 200, 255);
+}
+
+.clue-entry span.clue-label {
+	font-weight: bold;
+	font-size: calc(var(--ui-size) * 1.2);
+	margin-right: 4px;
+	cursor: grab;
+}
+
+.clue-entry div.clue-desc {
+	flex: 1 0;
+}
+
+button.delete {
+	width: calc(var(--ui-size));
+	height: calc(var(--ui-size));
+	border: none;
+	background-size: contain;
+	cursor: pointer;
+	background-image: url("res/delete.svg");
+}

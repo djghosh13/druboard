@@ -1,35 +1,54 @@
-var cell_px = 40;
-
 const grid = document.getElementById("main-grid");
-const clueList = document.getElementById("clue-list");
 
-class Game {
-    constructor(gridElement, cluesElement, template) {
+class PuzzleMaker {
+    constructor(gridElement) {
         this.grid = gridElement;
-        this.clueList = cluesElement;
 
-        this.width = template["width"];
-        this.height = template["height"];
-        this.answers = template["grid"];
-        this.wordclues = template["clues"];
-        // Initialize game
+        this.width = 1;
+        this.height = 1;
+        // Initialize puzzle maker
+        this.mode = "mark";
+        this.state = [[{"cell": false, "value": ""}]];
+        this.selection = {"index": 0, "direction": "across", "position": 0};
+        this.dragging = null;
+        this.resizeGrid(3, 3);
+        // Initialize UI
+        this.selectCell(0, 0);
+    }
+
+    refreshGrid() {
+        // Get old answers array and resize it
+        let answers = this.exportAnswers();
+        for (let j = answers[0].length; j < this.width; j++) {
+            for (let i = 0; i < answers.length; i++) {
+                answers[i].push("");
+            }
+        }
+        for (let i = answers.length; i < this.height; i++) {
+            let row = [];
+            for (let j = 0; j < this.width; j++) {
+                row.push("");
+            }
+            answers.push(row);
+        }
+        // Re-populate state array
         this.state = [];
         let clueidx = 1;
         for (let i = 0; i < this.height; i++) {
             let row = [];
             for (let j = 0; j < this.width; j++) {
-                if (this.answers[i][j] != null) {
+                if (answers[i][j] != null) {
                     // Check if cell is start of any clues
                     let clues = {
                         "across": null,
                         "down": null
                     };
-                    if ((i == 0 || this.answers[i - 1][j] == null) &&
-                        !(i == this.height - 1 || this.answers[i + 1][j] == null)) {
+                    if ((i == 0 || answers[i - 1][j] == null) &&
+                        !(i == this.height - 1 || answers[i + 1][j] == null)) {
                         clues["down"] = clueidx;
                     }
-                    if ((j == 0 || this.answers[i][j - 1] == null) &&
-                        !(j == this.width - 1 || this.answers[i][j + 1] == null)) {
+                    if ((j == 0 || answers[i][j - 1] == null) &&
+                        !(j == this.width - 1 || answers[i][j + 1] == null)) {
                         clues["across"] = clueidx;
                     }
                     let label = null;
@@ -38,16 +57,15 @@ class Game {
                         clueidx++;
                     }
                     // Propagate clue association
-                    if (i != 0 && this.answers[i - 1][j] != null) {
+                    if (i != 0 && answers[i - 1][j] != null) {
                         clues["down"] = this.state[i - 1][j]["clues"]["down"];
                     }
-                    if (j != 0 && this.answers[i][j - 1] != null) {
+                    if (j != 0 && answers[i][j - 1] != null) {
                         clues["across"] = row[j - 1]["clues"]["across"];
                     }
                     row.push({
                         "cell": true,
-                        "value": "",
-                        "locked": false,
+                        "value": answers[i][j],
                         "clues": clues,
                         "label": label
                     });
@@ -80,16 +98,15 @@ class Game {
                 }
             }
         }
-        // Draw to page
         this.renderCells();
-        this.renderClues();
-        // Initialize UI
-        this.selection = {"index": 0, "direction": "across", "position": 0};
-        this.selectCell(0, 0);
-        this.validateAnswers("grid");
+        this.refreshClues();
     }
 
     renderCells() {
+        let cellWidth = window.innerWidth * 0.55 / this.width * 0.9;
+        let cellHeight = window.innerHeight / this.height * 0.8;
+        let cellPx = Math.max(Math.min(cellWidth, cellHeight, 120), 20);
+        document.documentElement.style.setProperty("--cell-size", Math.floor(cellPx) + "px");
         this.grid.innerHTML = "";
         for (let i = 0; i < this.height; i++) {
             let row = document.createElement("tr");
@@ -98,7 +115,6 @@ class Game {
                 cell.className = "cell";
                 cell.id = "cell-" + i + "-" + j;
                 if (this.state[i][j]["cell"]) {
-                    cell.addEventListener("click", clickCell);
                     // Value
                     let value = document.createElement("span");
                     value.innerText = this.state[i][j]["value"];
@@ -113,33 +129,21 @@ class Game {
                 } else {
                     cell.className = "cell black";
                 }
+                cell.addEventListener("click", clickCell);
                 row.appendChild(cell);
             }
             this.grid.appendChild(row);
         }
-        // Initial clue list
-        let idx = 0;
-        let acrossBox = this.clueList.querySelector("#clues-across");
-        for (let c = 1; c < this.clues.length; c++) {
-            if (this.clues[c]["across"].length) {
-                let div = document.createElement("div");
-                div.innerText = c + " " + this.wordclues["across"][idx++];
-                acrossBox.appendChild(div);
-            }
-        }
-        idx = 0;
-        let downBox = this.clueList.querySelector("#clues-down");
-        for (let c = 1; c < this.clues.length; c++) {
-            if (this.clues[c]["down"].length) {
-                let div = document.createElement("div");
-                div.innerText = c + " " + this.wordclues["down"][idx++];
-                downBox.appendChild(div);
-            }
-        }
     }
 
-    renderClues() {
-        // TODO
+    resizeGrid(nw, nh) {
+        if (nw >= 3 && nh >= 3 && !(nw == this.width && nh == this.height)) {
+            this.width = nw;
+            this.height = nh;
+            this.refreshGrid();
+            document.querySelector("div.input-value[data-property=width]").innerText = this.width;
+            document.querySelector("div.input-value[data-property=height]").innerText = this.height;
+        }
     }
 
     renderSelection() {
@@ -170,8 +174,14 @@ class Game {
 
     selectCell(i, j) {
         let state = this.state[i][j];
+        if (this.mode == "mark") {
+            state["cell"] = !state["cell"];
+            state["value"] = "";
+            this.refreshGrid();
+            return;
+        }
         if (!state["cell"]) {
-            return console.error("Tried to select black cell");
+            return;
         }
         if (state["clues"][this.selection["direction"]] == this.selection["index"]) {
             let selected = this.getSelectedCell();
@@ -236,7 +246,6 @@ class Game {
         if (!state["locked"]) {
             state["value"] = char;
             this.getCell(i, j).firstElementChild.innerText = char;
-            this.validateAnswers("clue");
         }
         this.navigate(this.selection["direction"], true);
     }
@@ -253,25 +262,106 @@ class Game {
         }
     }
 
-    validateAnswers(vtype) {
-        if (vtype == "clue") {
-            let clue = this.clues[this.selection["index"]][this.selection["direction"]];
-            let correct = true;
-            for (let k = 0; k < clue.length; k++) {
-                let [i, j] = clue[k];
-                if (this.state[i][j]["value"] != this.answers[i][j].toUpperCase()) {
-                    correct = false;
-                    break;
-                }
-            }
-            if (correct) {
-                for (let k = 0; k < clue.length; k++) {
-                    let [i, j] = clue[k];
-                    this.state[i][j]["locked"] = true;
-                    this.getCell(i, j).classList.add("correct");
-                }
+    addClue(dir) {
+        let entry = document.createElement("div");
+        entry.className = "clue-entry";
+        entry.addEventListener("dragend", clueDragEnd);
+        let label = document.createElement("span");
+        label.className = "clue-label";
+        label.addEventListener("dragstart", clueDragStart);
+        label.addEventListener("drag", clueDragStart);
+        entry.appendChild(label);
+        let clue = document.createElement("div");
+        clue.setAttribute("contentEditable", "true");
+        clue.className = "clue-desc";
+        clue.innerText = "Sample clue";
+        entry.appendChild(clue);
+        let del = document.createElement("button");
+        del.className = "delete";
+        del.addEventListener("click", clickDelete);
+        entry.appendChild(del);
+        document.querySelector("#clues-" + dir).appendChild(entry);
+        entry.scrollIntoView();
+        this.refreshClues();
+    }
+
+    refreshClues() {
+        let entries = document.querySelectorAll("#clues-across .clue-entry");
+        let idx = 1;
+        for (let i = 0; i < entries.length; i++) {
+            while (idx < this.clues.length && !this.clues[idx]["across"].length) idx++;
+            if (idx < this.clues.length) {
+                entries[i].querySelector(".clue-label").innerText = idx;
+                idx++;
+            } else {
+                entries[i].querySelector(".clue-label").innerText = "";
             }
         }
+        entries = document.querySelectorAll("#clues-down .clue-entry");
+        idx = 1;
+        for (let i = 0; i < entries.length; i++) {
+            while (idx < this.clues.length && !this.clues[idx]["down"].length) idx++;
+            if (idx < this.clues.length) {
+                entries[i].querySelector(".clue-label").innerText = idx;
+                idx++;
+            } else {
+                entries[i].querySelector(".clue-label").innerText = "";
+            }
+        }
+    }
+
+    exportAnswers() {
+        let answers = [];
+        for (let i = 0; i < this.state.length; i++) {
+            let row = [];
+            for (let j = 0; j < this.state[i].length; j++) {
+                row.push(this.state[i][j]["cell"] ? this.state[i][j]["value"] : null);
+            }
+            answers.push(row);
+        }
+        return answers;
+    }
+
+    exportPuzzle(fmt) {
+        this.refreshGrid();
+        let data = {
+            "width": this.width,
+            "height": this.height,
+            "grid": [],
+            "clues": {
+                "across": [],
+                "down": []
+            }
+        };
+        // Answers
+        for (let i = 0; i < this.height; i++) {
+            let row = [];
+            for (let j = 0; j < this.width; j++) {
+                if (this.state[i][j]["cell"]) {
+                    if (!this.state[i][j]["value"]) return console.error("Incomplete puzzle!");
+                    row.push(this.state[i][j]["value"]);
+                } else {
+                    row.push(null);
+                }
+            }
+            data["grid"].push(row);
+        }
+        // Clues
+        for (let entry of document.querySelectorAll("#clues-across .clue-entry")) {
+            if (entry.querySelector(".clue-label").innerText) {
+                data["clues"]["across"].push(entry.querySelector(".clue-desc").innerText);
+            }  else {
+                console.warn("Too many defined clues!");
+            }
+        }
+        for (let entry of document.querySelectorAll("#clues-down .clue-entry")) {
+            if (entry.querySelector(".clue-label").innerText) {
+                data["clues"]["down"].push(entry.querySelector(".clue-desc").innerText);
+            }  else {
+                console.warn("Too many defined clues!");
+            }
+        }
+        return JSON.stringify(data);
     }
 }
 
@@ -296,15 +386,68 @@ function indexOf(arrayOfArrays, array) {
 }
 
 function clickCell(event) {
-    let selection = event.target.id.match(/cell-(\d+)-(\d+)/);
+    let selection = this.id.match(/cell-(\d+)-(\d+)/);
     let i = parseInt(selection[1]);
     let j = parseInt(selection[2]);
     game.selectCell(i, j);
     event.preventDefault();
 }
 
+function clickDelete(event) {
+    this.parentNode.remove();
+    game.refreshClues();
+    event.preventDefault();
+}
+
+function clueDragStart(event) {
+    game.dragging = this.parentNode;
+}
+
+function clueDragEnd(event) {
+    if (game.dragging) {
+        // console.log(event.currentTarget.parentNode);
+        event.currentTarget.parentNode.insertBefore(game.dragging, this);
+        game.dragging = null;
+    }
+}
+
+for (let element of document.querySelectorAll("button.increment")) {
+    element.addEventListener("click", function(event) {
+        let width = game.width, height = game.height;
+        if (this.getAttribute("data-property") == "width") {
+            width += parseInt(this.getAttribute("data-value"));
+        } else if (this.getAttribute("data-property") == "height") {
+            height += parseInt(this.getAttribute("data-value"));
+        }
+        game.resizeGrid(width, height);
+    });
+}
+
+for (let element of document.querySelectorAll("button.mode")) {
+    element.addEventListener("click", function(event) {
+        game.mode = this.getAttribute("data-value");
+    });
+}
+
+for (let element of document.querySelectorAll("button.option[data-action=export]")) {
+    element.addEventListener("click", function(event) {
+        let data = game.exportPuzzle(this.getAttribute("data-value"));
+        if (data) {
+            navigator.clipboard.writeText(data).then(() => { console.log("Successfully exported!") });
+        }
+    });
+}
+
+for (let element of document.querySelectorAll("button.add-item")) {
+    element.addEventListener("click", function(event) {
+        game.addClue(this.getAttribute("data-value"));
+    });
+}
+
 document.addEventListener("keydown", function(event) {
     if (event.repeat || event.ctrlKey || event.altKey) return;
+    if (document.querySelector("#clues-across").contains(event.target) ||
+        document.querySelector("#clues-down").contains(event.target)) return;
     if ("ABCDEFGHIJKLMNOPQRSTUVWXYZ".includes(event.key.toUpperCase())) {
         game.typeCharacter(event.key.toUpperCase());
     } else switch (event.code) {
@@ -328,21 +471,4 @@ document.addEventListener("keydown", function(event) {
     event.preventDefault();
 });
 
-var game = new Game(grid, clueList, {
-    "width": 3,
-    "height": 3,
-    "grid": [
-        ["W", "H", "O"],
-        ["A", null, null],
-        ["Y", "A", "K"]
-    ],
-    "clues": {
-        "across": [
-            "Which person makes owl sounds",
-            "Throw up bovine"
-        ],
-        "down": [
-            "Ottawa yetis have direction"
-        ]
-    }
-});
+var game = new PuzzleMaker(grid);

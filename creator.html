@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en-US">
+    
+    <head>
+        <title>DhruBoard</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="creator.css">
+    </head>
+
+    <body>
+        <div id="toolbar">
+            <div class="toolbar-item">
+                <h1 class="header">Width</h1>
+                <div class="input-row">
+                    <button class="increment" data-property="width" data-value="-1"></button>
+                    <div class="input-value" data-property="width">0</div>
+                    <button class="increment" data-property="width" data-value="1"></button>
+                </div>
+            </div>
+            <div class="toolbar-item">
+                <h1 class="header">Height</h1>
+                <div class="input-row">
+                    <button class="increment" data-property="height" data-value="-1"></button>
+                    <div class="input-value" data-property="height">0</div>
+                    <button class="increment" data-property="height" data-value="1"></button>
+                </div>
+            </div>
+            <div class="toolbar-item">
+                <h1 class="header">Mode</h1>
+                <div class="input-row">
+                    <button class="mode" data-value="mark"></button>
+                    <button class="mode" data-value="write"></button>
+                </div>
+            </div>
+            <div class="toolbar-item">
+                <h1 class="header">Options</h1>
+                <button class="option" data-action="export" data-value="json">Export JSON</button>
+            </div>
+        </div>
+        <div id="content">
+            <table id="main-grid"></table>
+        </div>
+        <div class="clues-section">
+            <h1 class="header">Across</h1>
+            <button class="add-item" data-value="across">Add Clue...</button>
+            <div id="clues-across" class="clues-list"></div>
+        </div>
+        <div class="clues-section">
+            <h1 class="header">Down</h1>
+            <button class="add-item" data-value="down">Add Clue...</button>
+            <div id="clues-down" class="clues-list"></div>
+        </div>
+        <script src="creator.js"></script>
+    </body>
+</html>
