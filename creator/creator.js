@@ -271,16 +271,31 @@ class PuzzleMaker {
         let clue = document.createElement("div");
         clue.setAttribute("contentEditable", "true");
         clue.className = "clue-desc";
-        clue.innerText = "Sample clue";
+        clue.innerText = "...";
+        clue.addEventListener("focus", focusClue);
         entry.appendChild(clue);
+        let moveup = document.createElement("button");
+        moveup.className = "moveup";
+        moveup.addEventListener("click", clickMoveUp);
+        let movedown = document.createElement("button");
+        movedown.className = "movedown";
+        movedown.addEventListener("click", clickMoveDown);
         let del = document.createElement("button");
         del.className = "delete";
         del.addEventListener("click", clickDelete);
+        entry.appendChild(moveup);
+        entry.appendChild(movedown);
         entry.appendChild(del);
         document.querySelector("#clues-" + dir).appendChild(entry);
         entry.scrollIntoView();
         this.refreshClues();
         return entry;
+    }
+
+    resetClues() {
+        for (let entry of document.querySelectorAll("div.clue-entry")) {
+            entry.remove();
+        }
     }
 
     refreshClues() {
@@ -381,7 +396,7 @@ class PuzzleMaker {
             str += "across\n";
             for (let entry of document.querySelectorAll("#clues-across .clue-entry")) {
                 if (entry.querySelector(".clue-label").innerText) {
-                    str += entry.querySelector(".clue-desc").innerText + "\n";
+                    str += ":" + entry.querySelector(".clue-desc").innerText + "\n";
                 }  else {
                     console.warn("Too many defined clues!");
                 }
@@ -389,7 +404,7 @@ class PuzzleMaker {
             str += "down\n";
             for (let entry of document.querySelectorAll("#clues-down .clue-entry")) {
                 if (entry.querySelector(".clue-label").innerText) {
-                    str += entry.querySelector(".clue-desc").innerText + "\n";
+                    str += ":" + entry.querySelector(".clue-desc").innerText + "\n";
                 }  else {
                     console.warn("Too many defined clues!");
                 }
@@ -410,6 +425,7 @@ class PuzzleMaker {
             // Answers
             this.refreshGrid(data["grid"]);
             // Clues
+            this.resetClues();
             for (let clue of data["clues"]["across"]) {
                 this.addClue("across").querySelector(".clue-desc").innerText = clue;
             }
@@ -438,12 +454,13 @@ class PuzzleMaker {
                 answers.push(row);
             }
             this.refreshGrid(answers);
+            this.resetClues();
             let mode = "";
             for (let clue of clues) {
                 if (clue == "across" || clue == "down") {
                     mode = clue;
                 } else {
-                    this.addClue(mode).querySelector(".clue-desc").innerText = clue;
+                    this.addClue(mode).querySelector(".clue-desc").innerText = clue.substring(1);
                 }
             }
         }
@@ -475,6 +492,35 @@ function clickCell(event) {
     let i = parseInt(selection[1]);
     let j = parseInt(selection[2]);
     game.selectCell(i, j);
+    event.preventDefault();
+}
+
+function focusClue(event) {
+    let clueidx = this.parentNode.querySelector(".clue-label").innerText;
+    if (clueidx) {
+        let dir = this.parentNode.parentNode.getAttribute("id").split("-")[1];
+        game.selection["index"] = parseInt(clueidx);
+        game.selection["direction"] = dir;
+        game.selection["position"] = 0;
+        game.renderSelection();
+    }
+}
+
+function clickMoveUp(event) {
+    let entry = this.parentNode;
+    if (entry.previousElementSibling != null) {
+        entry.parentNode.insertBefore(entry, entry.previousElementSibling);
+    }
+    game.refreshClues();
+    event.preventDefault();
+}
+
+function clickMoveDown(event) {
+    let entry = this.parentNode;
+    if (entry.nextElementSibling != null) {
+        entry.parentNode.insertBefore(entry.nextElementSibling, entry);
+    }
+    game.refreshClues();
     event.preventDefault();
 }
 

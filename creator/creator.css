@@ -209,11 +209,22 @@ div.clue-desc::selection {
 	background-color: rgb(30, 144, 255);
 }
 
-button.delete {
-	width: calc(var(--ui-size));
-	height: calc(var(--ui-size));
+.clue-entry button {
+	width: var(--ui-size);
+	height: var(--ui-size);
 	border: none;
 	background-size: contain;
 	cursor: pointer;
+}
+
+button.moveup {
+	background-image: url("../res/uparrow.svg");
+}
+
+button.movedown {
+	background-image: url("../res/downarrow.svg");
+}
+
+button.delete {
 	background-image: url("../res/delete.svg");
 }
