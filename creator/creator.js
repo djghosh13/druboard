@@ -512,6 +512,7 @@ function clickMoveUp(event) {
         entry.parentNode.insertBefore(entry, entry.previousElementSibling);
     }
     game.refreshClues();
+    entry.querySelector(".clue-desc").focus();
     event.preventDefault();
 }
 
@@ -521,6 +522,7 @@ function clickMoveDown(event) {
         entry.parentNode.insertBefore(entry.nextElementSibling, entry);
     }
     game.refreshClues();
+    entry.querySelector(".clue-desc").focus();
     event.preventDefault();
 }
 
