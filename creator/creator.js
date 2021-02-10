@@ -142,6 +142,7 @@ class PuzzleMaker {
             this.width = nw;
             this.height = nh;
             this.refreshGrid();
+            this.checkSymmetry();
         }
         document.querySelector("div.input-value[data-property=width]").innerText = this.width;
         document.querySelector("div.input-value[data-property=height]").innerText = this.height;
@@ -152,8 +153,8 @@ class PuzzleMaker {
         let oldmode = this.mode;
         this.mode = "mark";
         if (cell === null) {
-            for (let i = 0; i < Math.floor(this.height / 2); i++) {
-                for (let j = 0; j < Math.floor(this.width / 2); j++) {
+            for (let i = 0; i < this.height / 2; i++) {
+                for (let j = 0; j < this.width; j++) {
                     let si = this.height - i - 1, sj = this.width - j - 1;
                     if (this.state[i][j]["cell"] != this.state[si][sj]["cell"]) {
                         this.selectCell(si, sj);
