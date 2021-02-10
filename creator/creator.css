@@ -71,12 +71,33 @@ div.input-value {
 	text-align: center;
 }
 
+div.single-select {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	align-items: center;
+}
+
 button.mode {
 	width: calc(var(--ui-size) * 3);
 	height: calc(var(--ui-size) * 3);
 	border: none;
 	background-size: contain;
 	cursor: pointer;
+	flex: 0 0 auto;
+}
+
+.single-select .selector {
+	width: 100%;
+	height: 10%;
+	margin-top: 4px;
+	background-color: rgb(0, 120, 20);
+	flex: 0 0 auto;
+	opacity: 0%;
+}
+
+.single-select .selector.selected {
+	opacity: 100%;
 }
 
 button.mode[data-value=mark] {
@@ -96,6 +117,16 @@ button.option {
 	font-family: Georgia, 'Times New Roman', Times, serif;
 	font-size: calc(var(--ui-size) * 1.3);
 	flex: 0 0;
+}
+
+span.toggle.off {
+	font-weight: bold;
+	color: rgb(200, 0, 0);
+}
+
+span.toggle.on {
+	font-weight: bold;
+	color: rgb(0, 180, 40);
 }
 
 /* Grid */

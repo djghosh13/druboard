@@ -8,6 +8,7 @@ class PuzzleMaker {
         this.height = 1;
         // Initialize puzzle maker
         this.mode = "mark";
+        this.symmetry = false;
         this.state = [[{"cell": false, "value": ""}]];
         this.selection = {"index": 0, "direction": "across", "position": 0};
         this.dragging = null;
@@ -146,6 +147,29 @@ class PuzzleMaker {
         document.querySelector("div.input-value[data-property=height]").innerText = this.height;
     }
 
+    checkSymmetry(cell = null) {
+        if (!this.symmetry) return;
+        let oldmode = this.mode;
+        this.mode = "mark";
+        if (cell === null) {
+            for (let i = 0; i < Math.floor(this.height / 2); i++) {
+                for (let j = 0; j < Math.floor(this.width / 2); j++) {
+                    let si = this.height - i - 1, sj = this.width - j - 1;
+                    if (this.state[i][j]["cell"] != this.state[si][sj]["cell"]) {
+                        this.selectCell(si, sj);
+                    }
+                }
+            }
+        } else {
+            let [i, j] = cell;
+            let si = this.height - i - 1, sj = this.width - j - 1;
+            if (this.state[i][j]["cell"] != this.state[si][sj]["cell"]) {
+                this.selectCell(si, sj);
+            }
+        }
+        this.mode = oldmode;
+    }
+
     renderSelection() {
         for (let i = 0; i < this.height; i++) {
             for (let j = 0; j < this.width; j++) {
@@ -178,6 +202,7 @@ class PuzzleMaker {
             state["cell"] = !state["cell"];
             state["value"] = "";
             this.refreshGrid();
+            this.checkSymmetry([i, j]);
             return;
         }
         if (!state["cell"]) {
@@ -437,9 +462,7 @@ class PuzzleMaker {
         } else if (fmt == "exf") {
             let str = atob(data);
             let [dims, grid, ...clues] = str.split("\n");
-            let [w, h] = dims.split(" ");
-            this.width = parseInt(w);
-            this.height = parseInt(h);
+            [this.width, this.height] = dims.split(" ").map((x) => parseInt(x));
             this.resizeGrid(this.width, this.height);
             let answers = [];
             for (let i = 0; i < this.height; i++) {
@@ -547,19 +570,10 @@ for (let element of document.querySelectorAll("button.increment")) {
 for (let element of document.querySelectorAll("button.mode")) {
     element.addEventListener("click", function(event) {
         game.mode = this.getAttribute("data-value");
-    });
-}
-
-for (let element of document.querySelectorAll("button.option[data-action=export]")) {
-    element.addEventListener("click", function(event) {
-        let data = game.exportPuzzle(this.getAttribute("data-value"));
-        if (data) {
-            navigator.clipboard.writeText(data).then(function() {
-                alert("Successfully copied to clipboard!");
-            }, function() {
-                alert("Error: Failed to copy to clipboard.");
-            });
+        for (let elem of document.querySelectorAll("button.mode")) {
+            elem.nextElementSibling.classList.remove("selected");
         }
+        this.nextElementSibling.classList.add("selected");
     });
 }
 
@@ -591,6 +605,14 @@ for (let element of document.querySelectorAll("button.option[data-action=import]
         document.addEventListener("paste", pasteHandler);
     });
 }
+
+document.querySelector("button.option[data-action=symmetry]").addEventListener("click", function(event) {
+    game.symmetry = !game.symmetry;
+    let state = game.symmetry ? "on" : "off";
+    this.querySelector(".toggle").className = "toggle " + state;
+    this.querySelector(".toggle").innerText = state.toUpperCase();
+    game.checkSymmetry();
+});
 
 for (let element of document.querySelectorAll("button.add-item")) {
     element.addEventListener("click", function(event) {

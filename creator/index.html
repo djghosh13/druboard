@@ -29,16 +29,26 @@
             <div class="toolbar-item">
                 <h1 class="header">Mode</h1>
                 <div class="input-row">
-                    <button class="mode" data-value="mark"></button>
-                    <button class="mode" data-value="write"></button>
+                    <div class="single-select">
+                        <button class="mode" data-value="mark"></button>
+                        <div class="selector selected"></div>
+                    </div>
+                    <div class="single-select">
+                        <button class="mode" data-value="write"></button>
+                        <div class="selector"></div>
+                    </div>
                 </div>
             </div>
             <div class="toolbar-item">
                 <h1 class="header">Options</h1>
-                <button class="option" data-action="export" data-value="json">Export JSON</button>
-                <button class="option" data-action="export" data-value="rxf">Export RXF</button>
-                <button class="option" data-action="export" data-value="exf">Export EXF</button>
                 <button class="option" data-action="import"><input type="text" style="display: none" />Import</button>
+                <button class="option" data-action="symmetry">Symmetry<br/><span class="toggle off">OFF</span></button>
+            </div>
+            <div class="toolbar-item">
+                <h1 class="header">Export</h1>
+                <button class="option" data-action="export" data-value="json">As JSON</button>
+                <button class="option" data-action="export" data-value="rxf">As RXF</button>
+                <button class="option" data-action="export" data-value="exf">As EXF</button>
             </div>
         </div>
         <div id="content">
