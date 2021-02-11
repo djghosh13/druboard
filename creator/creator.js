@@ -15,6 +15,7 @@ class Grid {
             let blocked = action["newvalue"] === null;
             let value = action["newvalue"] || "";
             action["oldvalue"] = state["cell"] ? state["value"] : null;
+            if (action["oldvalue"] === action["newvalue"]) return null;
             state["cell"] = !blocked;
             state["value"] = value;
             if (render) this.renderCell(i, j);
@@ -27,9 +28,9 @@ class Grid {
             let blocked = action["newvalue"] === null;
             let value = action["newvalue"] || "";
             action["oldvalue"] = state["value"];
+            if (action["oldvalue"] === action["newvalue"]) return null;
+            if (!state["cell"] || blocked) return null;
             state["value"] = value;
-            if (!state["cell"]) console.error("Tried to write to black cell", action);
-            if (blocked) console.error("Tried to write null", action);
             if (render) this.renderCell(i, j);
             return action;
         }
@@ -68,6 +69,7 @@ class Grid {
             if (render) this.render();
             return action;
         }
+        return action;
     }
 
     undoAction(action, render = true) {
@@ -105,6 +107,7 @@ class Grid {
                 }
                 this.state[i] = this.state[i].slice(0, size);
             }
+            this.width = size;
             if (render) this.render();
             return action;
         }
@@ -121,34 +124,32 @@ class Grid {
                 this.state.push(row);
             }
             this.state = this.state.slice(0, size);
+            this.height = size;
             if (render) this.render();
             return action;
         }
+        return action;
     }
 
     // Generate actions
     actionToggleCell(i, j, value = null) {
         let actionList = [];
         let newstate = (value === null) ? !this.state[i][j]["cell"] : value;
-        if (this.state[i][j]["cell"] != newstate) {
-            actionList.push({
-                "type": "mark",
-                "cell": [i, j],
-                "newvalue": newstate ? "" : null
-            });
-        }
+        actionList.push({
+            "type": "mark",
+            "cell": [i, j],
+            "newvalue": newstate ? "" : null
+        });
         return actionList;
     }
 
     actionEditCell(i, j, value) {
         let actionList = [];
-        if (this.isOpen(i, j) && this.state[i][j]["value"] != value) {
-            actionList.push({
-                "type": "edit",
-                "cell": [i, j],
-                "newvalue": value
-            });
-        }
+        actionList.push({
+            "type": "edit",
+            "cell": [i, j],
+            "newvalue": value
+        });
         return actionList;
     }
 
@@ -511,8 +512,9 @@ class GridController {
         this.mode = "mark";
     }
 
-    init() {
+    init(...additionalActors) {
         let game = this;
+        this.actors = [...this.actors, ...additionalActors];
         // Setup UI events
         for (let element of document.querySelectorAll("button.increment")) {
             element.addEventListener("click", function(event) {
@@ -591,13 +593,14 @@ class GridController {
             let done = [];
             while (actions.length) {
                 let action = actions.pop();
-                let render = !actions.length; // Render if last action
+                let render = true; // !actions.length; // Render if last action
                 for (let actor of this.actors) {
                     action = actor.doAction(action, render);
+                    if (action === null) break;
                 }
-                done.push(action);
+                if (action !== null) done.push(action);
             }
-            this.actionHistory.push(done);
+            if (done.length) this.actionHistory.push(done);
         }
         this.refresh();
     }
@@ -609,7 +612,7 @@ class GridController {
             let done = [];
             while (actions.length) {
                 let action = actions.pop();
-                let render = !actions.length; // Render if last action
+                let render = true; // !actions.length; // Render if last action
                 for (let actor of this.actors) {
                     action = actor.undoAction(action, render);
                 }
@@ -673,6 +676,30 @@ class ClueController {
         }
     }
 
+    doAction(action, render = false) {
+        switch (action["type"]) {
+            case "mark":
+            case "resize-width":
+            case "resize-height":
+                this.refresh();
+            case "edit":
+            default:
+        }
+        return action;
+    }
+
+    undoAction(action, render = false) {
+        switch (action["type"]) {
+            case "mark":
+            case "resize-width":
+            case "resize-height":
+                this.refresh();
+            case "edit":
+            default:
+        }
+        return action;
+    }
+
     refresh() {
         for (let dir of ["across", "down"]) {
             let idx = 0;
@@ -719,6 +746,11 @@ class ClueController {
         this.refresh();
         return entry;
     }
+
+    clear() {
+        this.element["across"].innerHTML = "";
+        this.element["down"].innerHTML = "";
+    }
 }
 
 
@@ -729,7 +761,7 @@ const downElement = document.getElementById("clues-down");
 
 var game = new GridController(gridElement);
 var cc = new ClueController(game, acrossElement, downElement);
-game.init();
+game.init(cc);
 cc.init();
 
 // UI functions
@@ -784,189 +816,147 @@ function otherDirection(dir) {
     }[dir];
 }
 
-// for (let element of document.querySelectorAll("button.option[data-action=export]")) {
-//     element.addEventListener("click", function(event) {
-//         let data = game.exportPuzzle(this.getAttribute("data-value"));
-//         if (data) {
-//             navigator.clipboard.writeText(data).then(function() {
-//                 alert("Successfully copied to clipboard!");
-//             }, function() {
-//                 alert("Error: Failed to copy to clipboard.");
-//             });
-//         }
-//     });
-// }
+function exportJSON() {
+    let puzzle = {
+        "metadata": {
+            "valid": true
+        },
+        "dimensions": [game.grid.width, game.grid.height],
+        "answers": [],
+        "clues": {
+            "across": [],
+            "down": []
+        }
+    };
+    // Fill in answers
+    for (let i = 0; i < game.grid.height; i++) {
+        let row = [];
+        for (let j = 0; j < game.grid.width; j++) {
+            if (game.grid.isOpen(i, j)) {
+                let value = game.grid.state[i][j]["value"];
+                if (game.structure.cellToClue[i][j]["across"] === null &&
+                        game.structure.cellToClue[i][j]["down"] === null)
+                    value = "";
+                row.push(value);
+                if (!value) puzzle["metadata"]["valid"] = false;
+            } else {
+                row.push(null);
+            }
+        }
+        puzzle["answers"].push(row);
+    }
+    // Retrieve clues
+    for (let dir of ["across", "down"]) {
+        let clues = cc.element[dir].querySelectorAll(".clue-entry")
+        for (let entry of clues) {
+            puzzle["clues"][dir].push(entry.querySelector(".clue-desc").innerText);
+        }
+        let nclues = game.structure.clueToCell.reduce((a, c) => a + (c[dir].length != 0));
+        if (clues.length != nclues) {
+            puzzle["metadata"]["valid"] = false;
+        }
+    }
+    return puzzle;
+}
 
-// for (let element of document.querySelectorAll("button.option[data-action=import]")) {
-//     element.addEventListener("click", function(event) {
-//         let pasteHandler = function(event) {
-//             let data = (event.clipboardData || window.clipboardData).getData("text");
-//             if (data) {
-//                 game.importPuzzle(data);
-//                 console.log("Imported clipboard data");
-//             } else {
-//                 console.error("No clipboard data to import");
-//             }
-//             this.removeEventListener("paste", pasteHandler);
-//         };
-//         document.addEventListener("paste", pasteHandler);
-//     });
-// }
+function importJSON(puzzle) {
+    game.takeAction(game.grid.actionResize("width", puzzle["dimensions"][0]));
+    game.takeAction(game.grid.actionResize("height", puzzle["dimensions"][1]));
+    // Answers
+    let actions = [];
+    for (let i = 0; i < game.grid.height; i++) {
+        for (let j = 0; j < game.grid.width; j++) {
+            actions = [...game.grid.actionToggleCell(i, j, puzzle["answers"][i][j] !== null), ...actions];
+            if (puzzle["answers"][i][j] !== null) {
+                actions = [...game.grid.actionEditCell(i, j, puzzle["answers"][i][j]), ...actions];
+            }
+        }
+    }
+    game.takeAction(actions);
+    // Clues
+    cc.clear();
+    for (let dir of ["across", "down"]) {
+        for (let clue of puzzle["clues"][dir]) {
+            cc.addClue(dir).querySelector(".clue-desc").innerText = clue;
+        }
+    }
+}
 
-// document.querySelector("button.option[data-action=symmetry]").addEventListener("click", function(event) {
-//     game.symmetry = !game.symmetry;
-//     let state = game.symmetry ? "on" : "off";
-//     this.querySelector(".toggle").className = "toggle " + state;
-//     this.querySelector(".toggle").innerText = state.toUpperCase();
-//     game.checkSymmetry();
-// });
+var exportFormat = {
+    "json": JSON.stringify,
+    "exf": function(puzzle) {
+        let data = [puzzle["metadata"], puzzle["dimensions"]];
+        let answerStr = "";
+        for (let i = 0; i < puzzle["dimensions"][1]; i++) {
+            for (let j = 0; j < puzzle["dimensions"][0]; j++) {
+                let ans = puzzle["answers"][i][j];
+                answerStr += (ans === null) ? "0" : (ans || " ");
+            }
+        }
+        data.push(answerStr);
+        data = [...data, puzzle["clues"]["across"], puzzle["clues"]["down"]];
+        return btoa(JSON.stringify(data));
+    },
+    "rxf": () => alert("RXF support coming soon!")
+};
 
+var importFormat = {
+    "json": JSON.parse,
+    "exf": function(str) {
+        let data = JSON.parse(atob(str));
+        let puzzle = {};
+        puzzle["metadata"] = data[0];
+        puzzle["dimensions"] = data[1];
+        puzzle["answers"] = [];
+        for (let i = 0; i < puzzle["dimensions"][1]; i++) {
+            let row = [];
+            for (let j = 0; j < puzzle["dimensions"][0]; j++) {
+                let ans = data[2][i * puzzle["dimensions"][0] + j];
+                row.push(ans == "0" ? null : ans == " " ? "" : ans);
+            }
+            puzzle["answers"].push(row);
+        }
+        puzzle["clues"] = {
+            "across": data[3],
+            "down": data[4]
+        };
+        return puzzle;
+    },
+    "rxf": () => alert("Unrecognized format")
+};
 
-// // Old code
+for (let element of document.querySelectorAll("button.option[data-action=export]")) {
+    element.addEventListener("click", function(event) {
+        let data = exportFormat[this.getAttribute("data-value")](exportJSON());
+        if (data) {
+            navigator.clipboard.writeText(data).then(function() {
+                alert("Successfully copied to clipboard!");
+            }, function() {
+                alert("Error: Failed to copy to clipboard.");
+            });
+        }
+    });
+}
 
-// resetClues() {
-//     for (let entry of document.querySelectorAll("div.clue-entry")) {
-//         entry.remove();
-//     }
-// }
+for (let element of document.querySelectorAll("button.option[data-action=import]")) {
+    element.addEventListener("click", function(event) {
+        let pasteHandler = function(event) {
+            let data = (event.clipboardData || window.clipboardData).getData("text");
+            if (data) {
+                for (let fmt in importFormat) {
+                    try {
+                        importJSON(importFormat[fmt](data));
+                        console.log("Imported clipboard data");
+                        break;
+                    } catch (e) {
 
-// exportAnswers() {
-//     let answers = [];
-//     for (let i = 0; i < this.state.length; i++) {
-//         let row = [];
-//         for (let j = 0; j < this.state[i].length; j++) {
-//             row.push(this.state[i][j]["cell"] ? this.state[i][j]["value"] : null);
-//         }
-//         answers.push(row);
-//     }
-//     return answers;
-// }
-
-// exportPuzzle(fmt) {
-//     this.refreshGrid();
-//     if (fmt == "json") {
-//         let data = {
-//             "width": this.width,
-//             "height": this.height,
-//             "grid": [],
-//             "clues": {
-//                 "across": [],
-//                 "down": []
-//             }
-//         };
-//         // Answers
-//         for (let i = 0; i < this.height; i++) {
-//             let row = [];
-//             for (let j = 0; j < this.width; j++) {
-//                 if (this.state[i][j]["cell"]) {
-//                     if (!this.state[i][j]["value"]) return alert("Please fill in all of the cells.");
-//                     row.push(this.state[i][j]["value"]);
-//                 } else {
-//                     row.push(null);
-//                 }
-//             }
-//             data["grid"].push(row);
-//         }
-//         // Clues
-//         for (let entry of document.querySelectorAll("#clues-across .clue-entry")) {
-//             if (entry.querySelector(".clue-label").innerText) {
-//                 data["clues"]["across"].push(entry.querySelector(".clue-desc").innerText);
-//             }  else {
-//                 console.warn("Too many defined clues!");
-//             }
-//         }
-//         for (let entry of document.querySelectorAll("#clues-down .clue-entry")) {
-//             if (entry.querySelector(".clue-label").innerText) {
-//                 data["clues"]["down"].push(entry.querySelector(".clue-desc").innerText);
-//             }  else {
-//                 console.warn("Too many defined clues!");
-//             }
-//         }
-//         return JSON.stringify(data);
-//     } else if (fmt == "rxf") {
-//         return alert("RXF format support coming soon!");
-//     } else if (fmt == "exf") {
-//         let str = this.width + " " + this.height + "\n";
-//         // Answers
-//         for (let i = 0; i < this.height; i++) {
-//             for (let j = 0; j < this.width; j++) {
-//                 if (this.state[i][j]["cell"]) {
-//                     if (!this.state[i][j]["value"]) return alert("Please fill in all of the cells.");
-//                     str += this.state[i][j]["value"];
-//                 } else {
-//                     str += " ";
-//                 }
-//             }
-//         }
-//         str += "\n";
-//         // Clues
-//         str += "across\n";
-//         for (let entry of document.querySelectorAll("#clues-across .clue-entry")) {
-//             if (entry.querySelector(".clue-label").innerText) {
-//                 str += ":" + entry.querySelector(".clue-desc").innerText + "\n";
-//             }  else {
-//                 console.warn("Too many defined clues!");
-//             }
-//         }
-//         str += "down\n";
-//         for (let entry of document.querySelectorAll("#clues-down .clue-entry")) {
-//             if (entry.querySelector(".clue-label").innerText) {
-//                 str += ":" + entry.querySelector(".clue-desc").innerText + "\n";
-//             }  else {
-//                 console.warn("Too many defined clues!");
-//             }
-//         }
-//         return btoa(str);
-//     }
-// }
-
-// importPuzzle(data) {
-//     let fmt;
-//     if (data[0] == "{") fmt = "json";
-//     else if (data.includes("\n")) fmt = "rxf";
-//     else fmt = "exf";
-//     if (fmt == "json") {
-//         data = JSON.parse(data);
-//         this.width = data["width"];
-//         this.height = data["height"];
-//         // Answers
-//         this.refreshGrid(data["grid"]);
-//         // Clues
-//         this.resetClues();
-//         for (let clue of data["clues"]["across"]) {
-//             this.addClue("across").querySelector(".clue-desc").innerText = clue;
-//         }
-//         for (let clue of data["clues"]["down"]) {
-//             this.addClue("down").querySelector(".clue-desc").innerText = clue;
-//         }
-//     } else if (fmt == "rxf") {
-//         return alert("RXF format support coming soon!");
-//     } else if (fmt == "exf") {
-//         let str = atob(data);
-//         let [dims, grid, ...clues] = str.split("\n");
-//         [this.width, this.height] = dims.split(" ").map((x) => parseInt(x));
-//         this.resizeGrid(this.width, this.height);
-//         let answers = [];
-//         for (let i = 0; i < this.height; i++) {
-//             let row = [];
-//             for (let j = 0; j < this.width; j++) {
-//                 if (grid[i * this.width + j] != " ") {
-//                     row.push(grid[i * this.width + j]);
-//                 } else {
-//                     row.push(null);
-//                 }
-//             }
-//             answers.push(row);
-//         }
-//         this.refreshGrid(answers);
-//         this.resetClues();
-//         let mode = "";
-//         for (let clue of clues) {
-//             if (clue == "across" || clue == "down") {
-//                 mode = clue;
-//             } else {
-//                 this.addClue(mode).querySelector(".clue-desc").innerText = clue.substring(1);
-//             }
-//         }
-//     }
-// }
+                    }
+                }
+            } else {
+                console.error("No clipboard data to import");
+            }
+            this.removeEventListener("paste", pasteHandler);
+        };
+        document.addEventListener("paste", pasteHandler);
+    });
+}
