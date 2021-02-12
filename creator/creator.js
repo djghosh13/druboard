@@ -977,6 +977,7 @@ for (let element of document.querySelectorAll("button.option[data-action=import]
 }
 
 var searching = false;
+var wsListener = null;
 
 function wsSelectResult(idx, dir) {
     return function(event) {
@@ -996,7 +997,7 @@ function wsSelectResult(idx, dir) {
 function wsClearResults() {
     let listElement = document.querySelector("#suggestions");
     listElement.parentNode.classList.remove("open-bar");
-    listElement.querySelectorAll("div.suggestion-result").forEach(x => x.remove());
+    listElement.querySelectorAll("div.suggestion-result").forEach(x => x.removeEventListener("click", wsListener));
 }
 
 document.querySelector("#suggest").addEventListener("click", function(event) {
@@ -1017,7 +1018,8 @@ document.querySelector("#suggest").addEventListener("click", function(event) {
                     let result = document.createElement("div");
                     result.className = "suggestion-result";
                     result.innerText = word;
-                    result.addEventListener("click", wsSelectResult(clueidx, cluedir));
+                    wsListener = wsSelectResult(clueidx, cluedir);
+                    result.addEventListener("click", wsListener);
                     listElement.insertBefore(result, lastElement);
                 }
                 searching = false;
