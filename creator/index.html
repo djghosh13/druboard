@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="en-US">
-    
     <head>
         <title>DruBoard - Creator</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         <meta charset="UTF-8">
         <link rel="stylesheet" href="creator.css">
+        <script type="text/javascript" src="wordsuggestion.js"></script>
     </head>
-
     <body>
         <div id="toolbar">
             <div class="toolbar-item">
@@ -57,6 +56,12 @@
                 <span class="head-title" contenteditable="true">Title</span>
                 <span class="head-byline" contenteditable="true">Author</span>
             </div>
+            <div id="auto-suggest">
+                <div id="suggest"></div>
+                <div id="suggestions">
+                    <div class="close"></div>
+                </div>
+            </div>
         </div>
         <div class="clues-section">
             <h1 class="header">Across</h1>
@@ -68,6 +73,6 @@
             <button class="add-item" data-value="down">Add Clue...</button>
             <div id="clues-down" class="clues-list"></div>
         </div>
-        <script src="creator.js"></script>
+        <script type="text/javascript" src="creator.js"></script>
     </body>
 </html>

@@ -184,9 +184,9 @@ class Grid {
 
     // Visuals
     render() {
-        let cellWidth = window.innerWidth * 0.55 / this.width * 0.9;
-        let cellHeight = window.innerHeight / this.height * 0.8;
-        let cellPx = Math.max(Math.min(cellWidth, cellHeight, 120), 20);
+        let cellWidth = window.innerWidth * 0.55 / this.width * 0.85;
+        let cellHeight = window.innerHeight / this.height * 0.9 * 0.85;
+        let cellPx = Math.max(Math.min(cellWidth, cellHeight, 120), 16);
         document.documentElement.style.setProperty("--cell-size", Math.floor(cellPx) + "px");
         this.element.innerHTML = "";
         for (let i = 0; i < this.height; i++) {
@@ -498,6 +498,12 @@ class GridSelector {
         }
         this.render();
     }
+
+    selectedClue() {
+        if (!this.selected) return null;
+        let clue = this.structure.getClue(...this.cell, this.direction);
+        return this.structure.clueToCell[clue][this.direction];
+    }
 }
 
 
@@ -520,12 +526,12 @@ class GridController {
             element.addEventListener("click", function(event) {
                 if (this.getAttribute("data-property") == "width") {
                     let width = game.grid.width + parseInt(this.getAttribute("data-value"));
-                    if (width >= 3) {
+                    if (3 <= width && width <= 32) {
                         game.takeAction(game.grid.actionResize("width", width));
                     }
                 } else if (this.getAttribute("data-property") == "height") {
                     let height = game.grid.height + parseInt(this.getAttribute("data-value"));
-                    if (height >= 3) {
+                    if (3 <= height && height <= 32) {
                         game.takeAction(game.grid.actionResize("height", height));
                     }
                 }
@@ -968,3 +974,56 @@ for (let element of document.querySelectorAll("button.option[data-action=import]
         document.addEventListener("paste", pasteHandler);
     });
 }
+
+var searching = false;
+
+function wsSelectResult(idx, dir) {
+    return function(event) {
+        let word = this.innerText.replace(/[^A-Z]/g, "");
+        let cells = game.structure.clueToCell[idx][dir];
+        if (word.length == cells.length) {
+            let actions = [];
+            for (let i = 0; i < word.length; i++) {
+                actions = [...actions, ...game.grid.actionEditCell(...cells[i], word[i])];
+            }
+            game.takeAction(actions);
+        }
+        wsClearResults();
+    };
+}
+
+function wsClearResults() {
+    let listElement = document.querySelector("#suggestions");
+    listElement.parentNode.classList.remove("open-bar");
+    listElement.querySelectorAll("div.suggestion-result").forEach(x => x.remove());
+}
+
+document.querySelector("#suggest").addEventListener("click", function(event) {
+    this.parentNode.classList.remove("open-bar");
+    if (game.selector.selected && !searching) {
+        let word = game.selector.selectedClue().map(cell => game.grid.state[cell[0]][cell[1]]["value"]);
+        if (word.reduce((a, x) => a || x, false)) {
+            // Get reference to clue
+            let clueidx = game.structure.getClue(...game.selector.cell, game.selector.direction);
+            let cluedir = game.selector.direction;
+            // Search up word
+            searching = true;
+            let listElement = document.querySelector("#suggestions");
+            requestAutofill(word, function(wordlist) {
+                listElement.querySelectorAll("div.suggestion-result").forEach(x => x.remove());
+                let lastElement = listElement.querySelector("div.close");
+                for (let word of wordlist) {
+                    let result = document.createElement("div");
+                    result.className = "suggestion-result";
+                    result.innerText = word;
+                    result.addEventListener("click", wsSelectResult(clueidx, cluedir));
+                    listElement.insertBefore(result, lastElement);
+                }
+                searching = false;
+                listElement.parentNode.classList.add("open-bar");
+            }, Math.floor(48 / Math.max(word.length, 4)));
+        }
+    }
+});
+
+document.querySelector("#suggestions div.close").addEventListener("click", wsClearResults);
