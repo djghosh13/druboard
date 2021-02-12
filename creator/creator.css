@@ -351,6 +351,7 @@ button.delete {
 	padding: 0 8px;
 	border: black solid;
 	border-width: 2px 1px 2px 1px;
+	white-space: nowrap;
 	overflow: hidden;
 	cursor: pointer;
 }
