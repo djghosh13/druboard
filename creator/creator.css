@@ -122,13 +122,12 @@ button.option {
 	flex: 0 0;
 }
 
-span.toggle.off {
+span.toggle {
 	font-weight: bold;
 	color: rgb(200, 0, 0);
 }
 
 span.toggle.on {
-	font-weight: bold;
 	color: rgb(0, 180, 40);
 }
 
@@ -151,7 +150,6 @@ span.toggle.on {
 	align-items: center;
 	width: 100%;
 	height: 10%;
-	background-color: rgba(255, 255, 255, 0.4);
 }
 
 #header span {

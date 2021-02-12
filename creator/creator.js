@@ -158,6 +158,10 @@ class Grid {
         let wi = (dim == "width") ? value : 0;
         let hi = (dim == "height") ? value : 0;
         if (wi == this.width || hi == this.height) return actionList;
+        actionList.push({
+            "type": "resize-" + dim,
+            "newvalue": value
+        });
         for (let i = hi; i < this.height; i++) {
             for (let j = wi; j < this.width; j++) {
                 if (!this.state[i][j]["cell"]) {
@@ -175,10 +179,6 @@ class Grid {
                 }
             }
         }
-        actionList.push({
-            "type": "resize-" + dim,
-            "newvalue": value
-        });
         return actionList;
     }
 
@@ -326,8 +326,12 @@ class GridStructure {
 
     // Utility
     getClue(i, j, dir) {
-        let cell = this.cellToClue[i][j];
-        return cell && cell[dir];
+        try {
+            let cell = this.cellToClue[i][j];
+            return cell && cell[dir];
+        } catch(e) {
+            return null;
+        }
     }
 }
 
@@ -516,6 +520,7 @@ class GridController {
         this.actionHistory = [], this.actionFuture = [];
         // UI
         this.mode = "mark";
+        this.symmetry = false;
     }
 
     init(...additionalActors) {
@@ -547,6 +552,12 @@ class GridController {
                 this.nextElementSibling.classList.add("selected");
             });
         }
+
+        document.querySelector("button.option[data-action=symmetry]").addEventListener("click", function(event) {
+            game.symmetry = !game.symmetry;
+            this.querySelector(".toggle").classList.toggle("on", game.symmetry);
+            this.querySelector(".toggle").innerText = game.symmetry ? "ON" : "OFF";
+        });
 
         document.addEventListener("keydown", function(event) {
             if (event.repeat || event.altKey) return;
@@ -646,7 +657,16 @@ class GridController {
     actionClickCell(i, j) {
         if (this.mode == "mark") {
             this.selector.selected = false;
-            this.takeAction(this.grid.actionToggleCell(i, j));
+            if (this.symmetry) {
+                let newstate = !this.grid.isOpen(i, j);
+                let si = this.grid.height - i - 1, sj = this.grid.width - j - 1;
+                this.takeAction([
+                    ...this.grid.actionToggleCell(i, j, newstate),
+                    ...this.grid.actionToggleCell(si, sj, newstate)
+                ]);
+            } else {
+                this.takeAction(this.grid.actionToggleCell(i, j));
+            }
         } else if (this.mode == "write") {
             this.selector.selectCell(i, j);
         }
