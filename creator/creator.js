@@ -551,7 +551,8 @@ class GridController {
         document.addEventListener("keydown", function(event) {
             if (event.repeat || event.altKey) return;
             if (document.querySelector("#clues-across").contains(event.target) ||
-                document.querySelector("#clues-down").contains(event.target)) return;
+                document.querySelector("#clues-down").contains(event.target) ||
+                document.querySelector("#header").contains(event.target)) return;
             // Undo and redo
             if (event.ctrlKey) {
                 if (event.key.toUpperCase() == "Z") {

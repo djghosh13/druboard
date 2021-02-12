@@ -3,7 +3,7 @@
 
 function requestAutofill(pattern, callback, maxwords = 10) {
     let query = pattern.reduce((a, x) => a + (x || "?"), "").toLowerCase();
-    let url = "http://api.datamuse.com/words?sp=" + query;
+    let url = "https://api.datamuse.com/words?sp=" + query;
     fetch(url)
         .then(response => response.json())
         .then(words => {
