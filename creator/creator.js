@@ -819,7 +819,9 @@ function otherDirection(dir) {
 function exportJSON() {
     let puzzle = {
         "metadata": {
-            "valid": true
+            "valid": true,
+            "title": "",
+            "author": ""
         },
         "dimensions": [game.grid.width, game.grid.height],
         "answers": [],
@@ -828,6 +830,9 @@ function exportJSON() {
             "down": []
         }
     };
+    // Metadata
+    puzzle["metadata"]["title"] = document.querySelector(".head-title").innerText;
+    puzzle["metadata"]["author"] = document.querySelector(".head-byline").innerText;
     // Fill in answers
     for (let i = 0; i < game.grid.height; i++) {
         let row = [];
@@ -880,6 +885,9 @@ function importJSON(puzzle) {
             cc.addClue(dir).querySelector(".clue-desc").innerText = clue;
         }
     }
+    // Metadata
+    document.querySelector(".head-title").innerText = puzzle["metadata"]["title"] || "";
+    document.querySelector(".head-byline").innerText = puzzle["metadata"]["author"] || "";
 }
 
 var exportFormat = {
