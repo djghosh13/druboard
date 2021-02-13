@@ -204,7 +204,7 @@ span.head-byline {
 
 .cell.selected-clue {
 	font-weight: bold;
-	background-color: rgb(150, 200, 255);
+	background-color: rgb(148, 200, 255);
 }
 
 .cell.correct, .cell.selected-clue.correct {
@@ -212,7 +212,7 @@ span.head-byline {
 }
 
 .cell.selected-clue.selected, .cell.selected-clue.correct.selected {
-	background-color: rgb(30, 144, 255);
+	background-color: rgb(31, 143, 255);
 }
 
 .cell.black {

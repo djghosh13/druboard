@@ -526,6 +526,8 @@ class GridController {
     init(...additionalActors) {
         let game = this;
         this.actors = [...this.actors, ...additionalActors];
+        // Initialize additional actors
+        additionalActors.forEach(x => x.init());
         // Setup UI events
         for (let element of document.querySelectorAll("button.increment")) {
             element.addEventListener("click", function(event) {
@@ -781,15 +783,142 @@ class ClueController {
 }
 
 
+class WordSuggestor {
+    constructor(gridController, gridSelector, suggestElement) {
+        this.controller = gridController;
+        this.selector = gridSelector;
+        this.element = suggestElement;
+        // State
+        this.searching = false;
+        this.promise = null;
+        this.clueidx = 0;
+        this.cluedir = "across";
+        this.cachedResults = null;
+        // Handlers
+        this.searchHandler = null;
+        this.closeHandler = null;
+        this.clickHandler = null;
+    }
+
+    init() {
+        let ws = this;
+        // Handlers
+        this.searchHandler = function(event) {
+            if (!ws.searching && ws.selector.selected) {
+                let word = ws.selector.selectedClue().map(cell => {
+                    return ws.controller.grid.state[cell[0]][cell[1]]["value"];
+                });
+                // Abort if clue is empty or filled in
+                if (!word.reduce((a, x) => a || x, false) || word.reduce((a, x) => a && x, true)) return;
+                // Save reference to clue
+                let clueidx = ws.controller.structure.getClue(...ws.selector.cell, ws.selector.direction);
+                let cluedir = ws.selector.direction;
+                let cached = clueidx == ws.clueidx && cluedir == ws.cluedir && ws.cachedResults !== null;
+                ws.clueidx = clueidx, ws.cluedir = cluedir;
+                // Search up word
+                ws.searching = true;
+                let maxwords = Math.floor(48 / Math.max(word.length, 4));
+                let promise = ws.promise = requestAutofill(word, maxwords, cached && ws.cachedResults);
+                promise.then(function(wordlist) {
+                    // Abort if no longer needed
+                    if (ws.promise !== promise) return;
+                    // Update list
+                    let listElement = ws.element.querySelector("#suggestions");
+                    let lastElement = ws.element.querySelector("div.close");
+                    listElement.querySelectorAll("div.suggestion-result").forEach(x => x.remove());
+                    for (let word of wordlist) {
+                        let result = document.createElement("div");
+                        result.className = "suggestion-result";
+                        result.innerText = word;
+                        result.addEventListener("click", ws.clickHandler);
+                        listElement.insertBefore(result, lastElement);
+                    }
+                    ws.element.classList.add("open-bar");
+                    ws.element.querySelector("#suggest").removeEventListener("click", ws.searchHandler);
+                    ws.element.querySelector("#suggest").addEventListener("click", ws.closeHandler);
+                    ws.cachedResults = wordlist;
+                    ws.searching = false;
+                });
+            }
+        };
+        this.closeHandler = function(event) {
+            ws.element.classList.remove("open-bar");
+            let listElement = ws.element.querySelector("#suggestions");
+            listElement.querySelectorAll("div.suggestion-result").forEach(x => x.removeEventListener("click", ws.clickHandler));
+            ws.searching = false;
+            ws.promise = null;
+            ws.element.querySelector("#suggest").removeEventListener("click", ws.closeHandler);
+            ws.element.querySelector("#suggest").removeEventListener("click", ws.searchHandler);
+            ws.element.querySelector("#suggest").addEventListener("click", ws.searchHandler);
+        };
+        this.clickHandler = function(event) {
+            let word = this.innerText.replace(/[^A-Z]/g, "");
+            let cells = ws.controller.structure.clueToCell[ws.clueidx][ws.cluedir];
+            if (word.length == cells.length) {
+                let actions = [];
+                for (let i = 0; i < word.length; i++) {
+                    actions = [...actions, ...ws.controller.grid.actionEditCell(...cells[i], word[i])];
+                }
+                ws.controller.takeAction(actions);
+            }
+            ws.closeHandler(event);
+        };
+        // Bind handlers
+        this.element.querySelector("#suggest").addEventListener("click", this.searchHandler);
+        this.element.querySelector("#suggestions div.close").addEventListener("click", this.closeHandler);
+    }
+
+    doAction(action, render = false) {
+        switch (action["type"]) {
+            case "mark":
+            case "resize-width":
+            case "resize-height":
+                this.reset();
+                break;
+            case "edit":
+            default:
+                this.refresh();
+        }
+        return action;
+    }
+
+    undoAction(action, render = false) {
+        switch (action["type"]) {
+            case "mark":
+            case "resize-width":
+            case "resize-height":
+                this.reset();
+                break;
+            case "edit":
+            default:
+                this.refresh();
+        }
+        return action;
+    }
+
+    refresh() {
+        this.cachedResults = false;
+    }
+
+    reset() {
+        this.searching = false;
+        this.promise = null;
+        this.refresh();
+        this.closeHandler(null);
+    }
+}
+
+
 // Main code
 const gridElement = document.getElementById("main-grid");
 const acrossElement = document.getElementById("clues-across");
 const downElement = document.getElementById("clues-down");
+const suggestElement = document.getElementById("auto-suggest");
 
 var game = new GridController(gridElement);
 var cc = new ClueController(game, acrossElement, downElement);
-game.init(cc);
-cc.init();
+var ws = new WordSuggestor(game, game.selector, suggestElement);
+game.init(cc, ws);
 
 // UI functions
 function uiClickCell(event) {
@@ -1005,60 +1134,3 @@ document.querySelector("button.option[data-action=theme]").addEventListener("cli
     this.querySelector(".toggle-theme").innerText = newmode.toUpperCase();
     document.querySelector("#theme-style").setAttribute("href", stylesheet);
 });
-
-// Auto-suggest feature
-
-var searching = false;
-var wsListener = null;
-
-function wsSelectResult(idx, dir) {
-    return function(event) {
-        let word = this.innerText.replace(/[^A-Z]/g, "");
-        let cells = game.structure.clueToCell[idx][dir];
-        if (word.length == cells.length) {
-            let actions = [];
-            for (let i = 0; i < word.length; i++) {
-                actions = [...actions, ...game.grid.actionEditCell(...cells[i], word[i])];
-            }
-            game.takeAction(actions);
-        }
-        wsClearResults();
-    };
-}
-
-function wsClearResults() {
-    let listElement = document.querySelector("#suggestions");
-    listElement.parentNode.classList.remove("open-bar");
-    listElement.querySelectorAll("div.suggestion-result").forEach(x => x.removeEventListener("click", wsListener));
-}
-
-document.querySelector("#suggest").addEventListener("click", function(event) {
-    this.parentNode.classList.remove("open-bar");
-    if (game.selector.selected && !searching) {
-        let word = game.selector.selectedClue().map(cell => game.grid.state[cell[0]][cell[1]]["value"]);
-        if (word.reduce((a, x) => a || x, false)) {
-            // Get reference to clue
-            let clueidx = game.structure.getClue(...game.selector.cell, game.selector.direction);
-            let cluedir = game.selector.direction;
-            // Search up word
-            searching = true;
-            let listElement = document.querySelector("#suggestions");
-            requestAutofill(word, function(wordlist) {
-                listElement.querySelectorAll("div.suggestion-result").forEach(x => x.remove());
-                let lastElement = listElement.querySelector("div.close");
-                for (let word of wordlist) {
-                    let result = document.createElement("div");
-                    result.className = "suggestion-result";
-                    result.innerText = word;
-                    wsListener = wsSelectResult(clueidx, cluedir);
-                    result.addEventListener("click", wsListener);
-                    listElement.insertBefore(result, lastElement);
-                }
-                searching = false;
-                listElement.parentNode.classList.add("open-bar");
-            }, Math.floor(48 / Math.max(word.length, 4)));
-        }
-    }
-});
-
-document.querySelector("#suggestions div.close").addEventListener("click", wsClearResults);
