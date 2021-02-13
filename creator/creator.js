@@ -996,6 +996,18 @@ for (let element of document.querySelectorAll("button.option[data-action=import]
     });
 }
 
+// Light/dark themes
+
+document.querySelector("button.option[data-action=theme]").addEventListener("click", function(event) {
+    let stylesheet = document.querySelector("#theme-style").getAttribute("href");
+    let newmode = stylesheet.includes("light") ? "dark" : "light";
+    stylesheet = "creator_" + newmode + ".css";
+    this.querySelector(".toggle-theme").innerText = newmode.toUpperCase();
+    document.querySelector("#theme-style").setAttribute("href", stylesheet);
+});
+
+// Auto-suggest feature
+
 var searching = false;
 var wsListener = null;
 
