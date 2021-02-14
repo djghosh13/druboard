@@ -1,0 +1,362 @@
+:root{
+	--cell-size: 80px;
+	--ui-size: 20px;
+}
+
+::selection {
+	background-color: transparent;
+}
+
+html {
+	height: 100%;
+}
+
+body {
+	width: 100%;
+	height: 100%;
+	cursor: default;
+	margin: 0;
+	display: flex;
+	font-family: "Milliard Medium", Arial, Helvetica, sans-serif;
+	line-height: 1.4;
+}
+
+button {
+	color: black;
+	background-color: transparent;
+	font-family: "Milliard Medium", Arial, Helvetica, sans-serif;
+	line-height: 1.25;
+}
+
+/* Toolbar */
+
+#toolbar {
+	display: flex;
+	flex-direction: column;
+	font-size: var(--ui-size);
+	flex: 0 0 10%;
+}
+
+#toolbar .toolbar-item {
+	margin: 6% 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+h1.header {
+	font-size: calc(var(--ui-size) * 1.5);
+	text-align: center;
+	margin: auto;
+}
+
+div.input-row {
+	display: flex;
+	justify-content: space-around;
+}
+
+button.increment {
+	width: calc(var(--ui-size) * 2);
+	height: calc(var(--ui-size) * 2);
+	border: none;
+	background-size: contain;
+	cursor: pointer;
+}
+
+div.input-value {
+	font-size: calc(var(--ui-size) * 2);
+	margin-top: calc(var(--ui-size) * -0.4);
+	text-align: center;
+}
+
+div.single-select {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	align-items: center;
+}
+
+button.mode {
+	width: calc(var(--ui-size) * 3);
+	height: calc(var(--ui-size) * 3);
+	border: none;
+	background-size: contain;
+	cursor: pointer;
+	flex: 0 0 auto;
+}
+
+.single-select .selector {
+	width: 100%;
+	height: 10%;
+	margin-top: 4px;
+	flex: 0 0 auto;
+	opacity: 0%;
+}
+
+.single-select .selector.selected {
+	opacity: 100%;
+}
+
+button.option {
+	margin: 4px;
+	border-radius: 0;
+	cursor: pointer;
+	font-size: calc(var(--ui-size) * 1.3);
+	flex: 0 0;
+}
+
+span.toggle, span.toggle-theme {
+	font-weight: bold;
+}
+
+/* Header */
+
+#content {
+	position: relative;
+	height: 100%;
+	flex: 2 0 55%;
+}
+
+#content #header {
+	position: absolute;
+	top: 0;
+	left: 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-evenly;
+	align-items: center;
+	width: 100%;
+	height: 10%;
+}
+
+#header span {
+	background: none;
+	min-width: 15%;
+	text-align: center;
+	padding: 2px 4px;
+	cursor: text;
+	font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+span.head-title {
+	font-size: calc(var(--ui-size) * 1.5);
+}
+
+span.head-byline {
+	font-size: calc(var(--ui-size));
+}
+
+/* Grid */
+
+#main-grid, #main-grid .cell {
+	border-collapse: collapse;
+	margin: 10% auto 0;
+	font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.cell {
+	position: relative;
+	text-align: center;
+	font-size: calc(var(--cell-size) * 0.5);
+	font-weight: normal;
+	width: var(--cell-size);
+	height: var(--cell-size);
+}
+
+.cell.selected-clue {
+	font-weight: bold;
+}
+
+.cell .cell-label {
+	position: absolute;
+	left: 5%;
+	top: 0;
+	line-height: 0.8em;
+	font-size: calc(var(--cell-size) * 0.35);
+	font-weight: normal;
+}
+
+/* Clues lists */
+
+.clues-section {
+	display: flex;
+	flex-direction: column;
+	font-size: var(--ui-size);
+	flex: 1 1 15%;
+}
+
+.clues-section h1.header {
+	margin: 0;
+	padding: 8px 0;
+	flex: 0 0;
+}
+
+button.add-item {
+	border: none;
+	border-radius: 0;
+	cursor: pointer;
+	font-size: calc(var(--ui-size) * 1.3);
+	flex: 0 0;
+}
+
+.clues-section .clues-list {
+	flex: 1 0;
+	overflow-y: scroll;
+	scrollbar-width: 0;
+}
+
+.clues-section .clues-list::-webkit-scrollbar {
+	display: none;
+}
+
+.clues-list div.clue-entry {
+	display: flex;
+	align-items: center;
+	padding: 4px 2px;
+}
+
+.clue-entry span.clue-label {
+	font-weight: bold;
+	font-size: calc(var(--ui-size) * 1.2);
+	margin-left: 4px;
+	margin-right: 8px;
+}
+
+.clue-entry div.clue-desc {
+	flex: 1 0;
+	cursor: text;
+	font-family: Georgia, 'Times New Roman', Times, serif;
+	line-height: normal;
+}
+
+.clue-entry button {
+	width: var(--ui-size);
+	height: var(--ui-size);
+	border: none;
+	background-size: contain;
+	cursor: pointer;
+}
+
+/* Auto-suggest */
+
+#auto-suggest {
+	position: absolute;
+	top: 1%;
+	left: 1%;
+}
+
+#auto-suggest #suggest {
+	position: relative;
+	width: calc(var(--ui-size) * 3.5);
+	height: calc(var(--ui-size) * 3.5);
+    border: 2px solid;
+	border-radius: 50%;
+	background-size: cover;
+	background-position: center;
+	cursor: pointer;
+	z-index: 12;
+	/* Animation */
+	transform: rotate(0);
+	transition: transform 0.5s;
+}
+
+#auto-suggest.open-bar #suggest {
+	transform: rotate(0.6turn);
+}
+
+#auto-suggest #suggestions {
+	display: flex;
+	position: absolute;
+	top: calc(var(--ui-size) * 0.25);
+	left: calc(var(--ui-size) * 2);
+	height: calc(var(--ui-size) * 3);
+	z-index: 10;
+	font-size: var(--ui-size);
+	/* Animation */
+	transform: translateX(-50%) scaleX(0);
+	opacity: 0;
+	transition: transform 0.4s, opacity 0.4s;
+}
+
+#auto-suggest.open-bar #suggestions {
+	transform: translateX(0) scaleX(1);
+	opacity: 100%;
+}
+
+#suggestions div {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 0 8px;
+	white-space: nowrap;
+	overflow: hidden;
+	cursor: pointer;
+    border-style: solid;
+	border-width: 2px 1px 2px 1px;
+}
+
+#suggestions div:first-child {
+	padding-left: calc(8px + var(--ui-size) * 1.5);
+}
+
+#suggestions div.close {
+	display: block;
+	background-size: cover;
+	box-sizing: border-box;
+	border-right-width: 2px;
+	width: calc(var(--ui-size) * 3);
+	height: 100%;
+	border-radius: 0 50% 50% 0;
+}
+
+/* Rentable link */
+
+a#rentable-link {
+    position: fixed;
+    bottom: 8px;
+    left: 8px;
+    width: calc(var(--ui-size) * 4);
+    height: calc(var(--ui-size) * 4);
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    font-size: calc(var(--ui-size) * 1.4);
+}
+
+a#rentable-link:hover, a#rentable-link:visited, a#rentable-link:link, a#rentable-link:active {
+    color: inherit;
+    text-decoration: none;
+}
+
+a#rentable-link .icon {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-size: cover;
+    width: 100%;
+    height: 100%;
+    /* Animation */
+    transform: rotate(0);
+    transition: transform 0.3s;
+}
+
+a#rentable-link:hover .icon {
+    transform: rotate(-0.5turn);
+}
+
+a#rentable-link .label-tl, a#rentable-link .label-br {
+    position: absolute;
+    height: 50%;
+    width: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+a#rentable-link .label-tl {
+    top: 4%;
+    left: 4%;
+}
+
+a#rentable-link .label-br {
+    bottom: 3%;
+    right: 4.2%;
+}
