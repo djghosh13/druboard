@@ -979,6 +979,7 @@ class SaveLoad {
         this.exportHandler = null;
         this.importHandler = null;
         this.pasteHandler = null;
+        this.downloadHandler = null;
         // Export/import
         this.exportFormat = {
             "json": JSON.stringify,
@@ -1055,12 +1056,28 @@ class SaveLoad {
             this.innerText = "Ctrl + V";
             document.addEventListener("paste", sl.pasteHandler);
         };
+        this.downloadHandler = function(event) {
+            // Update download link(s)
+            let puzzle = sl.exportObject();
+            let filename = puzzle["metadata"]["title"].replace(/\W/g, "") || "puzzle";
+            let data = sl.exportFormat[this.getAttribute("data-value")](puzzle);
+            if (data) {
+                this.setAttribute("href", "data:;base64," + btoa(data));
+                this.setAttribute("download", filename + "." + this.getAttribute("data-value"));
+            } else {
+                this.removeAttribute("href");
+                this.removeAttribute("download");
+            }
+        }
         // Bind handlers
         document.querySelectorAll("button.option[data-action=export]").forEach(
             x => x.addEventListener("click", this.exportHandler)
         );
         document.querySelectorAll("button.option[data-action=import]").forEach(
             x => x.addEventListener("click", this.importHandler)
+        );
+        document.querySelectorAll("a.option[data-action=download]").forEach(
+            x => x.addEventListener("click", this.downloadHandler)
         );
     }
 
@@ -1089,19 +1106,7 @@ class SaveLoad {
     }
 
     refresh() {
-        // Update download link(s)
-        let puzzle = this.exportObject();
-        let filename = puzzle["metadata"]["title"].replace(/\W/g, "") || "puzzle";
-        for (let element of document.querySelectorAll("a.option[data-action=download]")) {
-            let data = this.exportFormat[element.getAttribute("data-value")](puzzle);
-            if (data) {
-                element.setAttribute("href", "data:;base64," + btoa(data));
-                element.setAttribute("download", filename + "." + element.getAttribute("data-value"));
-            } else {
-                element.removeAttribute("href");
-                element.removeAttribute("download");
-            }
-        }
+        // Do nothing
     }
 
     exportObject() {
