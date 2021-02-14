@@ -8,7 +8,7 @@ class Grid {
     }
 
     // Perform actions
-    doAction(action, render = true) {
+    doAction(action, last = true) {
         // Mark cell black or white
         if (action["type"] == "mark") {
             let [i, j] = action["cell"];
@@ -19,7 +19,7 @@ class Grid {
             if (action["oldvalue"] === action["newvalue"]) return null;
             state["cell"] = !blocked;
             state["value"] = value;
-            if (render) this.renderCell(i, j);
+            this.renderCell(i, j);
             return action;
         }
         // Change cell value
@@ -32,7 +32,7 @@ class Grid {
             if (action["oldvalue"] === action["newvalue"]) return null;
             if (!state["cell"] || blocked) return null;
             state["value"] = value;
-            if (render) this.renderCell(i, j);
+            this.renderCell(i, j);
             return action;
         }
         // Change size
@@ -49,7 +49,7 @@ class Grid {
                 this.state[i] = this.state[i].slice(0, size);
             }
             this.width = size;
-            if (render) this.render();
+            this.render();
             return action;
         }
         else if (action["type"] == "resize-height") {
@@ -67,13 +67,13 @@ class Grid {
             }
             this.state = this.state.slice(0, size);
             this.height = size;
-            if (render) this.render();
+            this.render();
             return action;
         }
         return action;
     }
 
-    undoAction(action, render = true) {
+    undoAction(action, last = true) {
         // Mark cell black or white
         if (action["type"] == "mark") {
             let [i, j] = action["cell"];
@@ -83,7 +83,7 @@ class Grid {
             // TODO: Add conflict checks
             state["cell"] = !blocked;
             state["value"] = value;
-            if (render) this.renderCell(i, j);
+            this.renderCell(i, j);
             return action;
         }
         // Change cell value
@@ -93,7 +93,7 @@ class Grid {
             let blocked = action["oldvalue"] === null;
             let value = action["oldvalue"] || "";
             state["value"] = value;
-            if (render) this.renderCell(i, j);
+            this.renderCell(i, j);
             return action;
         }
         // Change size
@@ -109,7 +109,7 @@ class Grid {
                 this.state[i] = this.state[i].slice(0, size);
             }
             this.width = size;
-            if (render) this.render();
+            this.render();
             return action;
         }
         else if (action["type"] == "resize-height") {
@@ -126,7 +126,7 @@ class Grid {
             }
             this.state = this.state.slice(0, size);
             this.height = size;
-            if (render) this.render();
+            this.render();
             return action;
         }
         return action;
@@ -242,7 +242,7 @@ class GridStructure {
     }
 
     // Perform actions
-    doAction(action, render = true) {
+    doAction(action, last = true) {
         switch (action["type"]) {
             case "mark":
             case "resize-width":
@@ -251,11 +251,11 @@ class GridStructure {
             case "edit":
             default:
         }
-        if (render) this.render();
+        this.render();
         return action;
     }
 
-    undoAction(action, render = true) {
+    undoAction(action, last = true) {
         switch (action["type"]) {
             case "mark":
             case "resize-width":
@@ -264,7 +264,7 @@ class GridStructure {
             case "edit":
             default:
         }
-        if (render) this.render();
+        this.render();
         return action;
     }
 
@@ -327,12 +327,10 @@ class GridStructure {
 
     // Utility
     getClue(i, j, dir) {
-        try {
-            let cell = this.cellToClue[i][j];
-            return cell && cell[dir];
-        } catch(e) {
-            return null;
+        if (0 <= i && i < this.grid.height && 0 <= j && j < this.grid.width) {
+            return this.cellToClue[i][j][dir];
         }
+        return null;
     }
 }
 
@@ -346,7 +344,7 @@ class GridSelector {
         this.direction = "across";
     }
 
-    doAction(action, render = true) {
+    doAction(action, last = true) {
         switch (action["type"]) {
             case "mark":
             case "resize-width":
@@ -355,11 +353,11 @@ class GridSelector {
             case "edit":
             default:
         }
-        if (render) this.render();
+        this.render();
         return action;
     }
 
-    undoAction(action, render = true) {
+    undoAction(action, last = true) {
         switch (action["type"]) {
             case "mark":
             case "resize-width":
@@ -368,7 +366,7 @@ class GridSelector {
             case "edit":
             default:
         }
-        if (render) this.render();
+        this.render();
         return action;
     }
 
@@ -634,16 +632,18 @@ class GridController {
         this.actionHistory.length = 0;
     }
 
-    nextAction() {
-        if (this.actionFuture.length) {
-            let actions = this.actionFuture.pop();
+    nextAction(actions = undefined) {
+        let newAction = actions && actions.length;
+        if (newAction) this.actionFuture.push(actions);
+        if (newAction || this.actionFuture.length) {
+            actions = this.actionFuture.pop();
             if (!actions.length) console.error("Empty action");
             let done = [];
             while (actions.length) {
                 let action = actions.pop();
-                let render = true; // !actions.length; // Render if last action
+                let last = newAction || !actions.length;
                 for (let actor of this.actors) {
-                    action = actor.doAction(action, render);
+                    action = actor.doAction(action, last);
                     if (action === null) break;
                 }
                 if (action !== null) done.push(action);
@@ -660,9 +660,9 @@ class GridController {
             let done = [];
             while (actions.length) {
                 let action = actions.pop();
-                let render = true; // !actions.length; // Render if last action
+                let last = !actions.length;
                 for (let actor of this.actors) {
-                    action = actor.undoAction(action, render);
+                    action = actor.undoAction(action, last);
                 }
                 done.push(action);
             }
@@ -673,8 +673,7 @@ class GridController {
 
     takeAction(actions) {
         if (actions.length) {
-            this.actionFuture = [actions];
-            this.nextAction();
+            this.nextAction(actions);
         }
     }
 
@@ -769,7 +768,7 @@ class ClueController {
         }
     }
 
-    doAction(action, render = false) {
+    doAction(action, last = false) {
         switch (action["type"]) {
             case "mark":
             case "resize-width":
@@ -781,7 +780,7 @@ class ClueController {
         return action;
     }
 
-    undoAction(action, render = false) {
+    undoAction(action, last = false) {
         switch (action["type"]) {
             case "mark":
             case "resize-width":
@@ -931,7 +930,7 @@ class WordSuggestor {
         this.element.querySelector("#suggestions div.close").addEventListener("click", this.closeHandler);
     }
 
-    doAction(action, render = false) {
+    doAction(action, last = false) {
         switch (action["type"]) {
             case "mark":
             case "resize-width":
@@ -945,7 +944,7 @@ class WordSuggestor {
         return action;
     }
 
-    undoAction(action, render = false) {
+    undoAction(action, last = false) {
         switch (action["type"]) {
             case "mark":
             case "resize-width":
@@ -980,13 +979,53 @@ class SaveLoad {
         this.exportHandler = null;
         this.importHandler = null;
         this.pasteHandler = null;
+        // Export/import
+        this.exportFormat = {
+            "json": JSON.stringify,
+            "exf": function(puzzle) {
+                let data = [puzzle["metadata"], puzzle["dimensions"]];
+                let answerStr = "";
+                for (let i = 0; i < puzzle["dimensions"][1]; i++) {
+                    for (let j = 0; j < puzzle["dimensions"][0]; j++) {
+                        let ans = puzzle["answers"][i][j];
+                        answerStr += (ans === null) ? "0" : (ans || " ");
+                    }
+                }
+                data.push(answerStr);
+                data = [...data, puzzle["clues"]["across"], puzzle["clues"]["down"]];
+                return "*" + btoa(JSON.stringify(data));
+            }
+        };
+        this.importFormat = {
+            "json": JSON.parse,
+            "exf": function(str) {
+                let data = JSON.parse(atob(str.substring(1)));
+                let puzzle = {};
+                puzzle["metadata"] = data[0];
+                puzzle["dimensions"] = data[1];
+                puzzle["answers"] = [];
+                for (let i = 0; i < puzzle["dimensions"][1]; i++) {
+                    let row = [];
+                    for (let j = 0; j < puzzle["dimensions"][0]; j++) {
+                        let ans = data[2][i * puzzle["dimensions"][0] + j];
+                        row.push(ans == "0" ? null : ans == " " ? "" : ans);
+                    }
+                    puzzle["answers"].push(row);
+                }
+                puzzle["clues"] = {
+                    "across": data[3],
+                    "down": data[4]
+                };
+                return puzzle;
+            }
+        };
     }
 
     init() {
         let sl = this;
         // Handlers
         this.exportHandler = function(event) {
-            let data = exportFormat[this.getAttribute("data-value")](sl.exportObject());
+            let data = sl.exportFormat[this.getAttribute("data-value")](sl.exportObject());
             if (data) {
                 navigator.clipboard.writeText(data).then(
                     () => alert("Successfully copied to clipboard!"),
@@ -999,7 +1038,7 @@ class SaveLoad {
             if (data) {
                 let fmt = sl.detectFormat(data);
                 if (fmt) {
-                    sl.importObject(importFormat[fmt](data));
+                    sl.importObject(sl.importFormat[fmt](data));
                     console.log("Imported clipboard data");
                 } else {
                     alert("Error: Unrecognized format");
@@ -1007,9 +1046,13 @@ class SaveLoad {
             } else {
                 console.error("No clipboard data to import");
             }
+            document.querySelectorAll("button.option[data-action=import]").forEach(
+                x => x.innerText = "Import"
+            );
             this.removeEventListener("paste", sl.pasteHandler);
         };
         this.importHandler = function(event) {
+            this.innerText = "Ctrl + V";
             document.addEventListener("paste", sl.pasteHandler);
         };
         // Bind handlers
@@ -1021,32 +1064,44 @@ class SaveLoad {
         );
     }
 
-    doAction(action, render = false) {
+    doAction(action, last = false) {
         switch (action["type"]) {
             case "mark":
             case "resize-width":
             case "resize-height":
             case "edit":
-                this.refresh();
+                if (last) this.refresh();
             default:
         }
         return action;
     }
 
-    undoAction(action, render = false) {
+    undoAction(action, last = false) {
         switch (action["type"]) {
             case "mark":
             case "resize-width":
             case "resize-height":
             case "edit":
-                this.refresh();
+                if (last) this.refresh();
             default:
         }
         return action;
     }
 
     refresh() {
-        // Save to local storage
+        // Update download link(s)
+        let puzzle = this.exportObject();
+        let filename = puzzle["metadata"]["title"].replace(/\W/g, "") || "puzzle";
+        for (let element of document.querySelectorAll("a.option[data-action=download]")) {
+            let data = this.exportFormat[element.getAttribute("data-value")](puzzle);
+            if (data) {
+                element.setAttribute("href", "data:;base64," + btoa(data));
+                element.setAttribute("download", filename + "." + element.getAttribute("data-value"));
+            } else {
+                element.removeAttribute("href");
+                element.removeAttribute("download");
+            }
+        }
     }
 
     exportObject() {
@@ -1127,6 +1182,7 @@ class SaveLoad {
         // Metadata
         document.querySelector(".head-title").innerText = puzzle["metadata"]["title"] || "";
         document.querySelector(".head-byline").innerText = puzzle["metadata"]["author"] || "";
+        this.refresh();
     }
 
     detectFormat(data) {
@@ -1157,6 +1213,13 @@ function uiClickCell(event) {
     game.actionClickCell(i, j);
     event.preventDefault();
 }
+
+// Re-render on resize
+window.addEventListener("resize", function(event) {
+    for (let actor of game.actors) {
+        if ("render" in actor) actor.render();
+    }
+});
     
 // Utilities
 function otherDirection(dir) {
@@ -1165,46 +1228,3 @@ function otherDirection(dir) {
         "down": "across"
     }[dir];
 }
-
-// Export/import
-
-var exportFormat = {
-    "json": JSON.stringify,
-    "exf": function(puzzle) {
-        let data = [puzzle["metadata"], puzzle["dimensions"]];
-        let answerStr = "";
-        for (let i = 0; i < puzzle["dimensions"][1]; i++) {
-            for (let j = 0; j < puzzle["dimensions"][0]; j++) {
-                let ans = puzzle["answers"][i][j];
-                answerStr += (ans === null) ? "0" : (ans || " ");
-            }
-        }
-        data.push(answerStr);
-        data = [...data, puzzle["clues"]["across"], puzzle["clues"]["down"]];
-        return "*" + btoa(JSON.stringify(data));
-    }
-};
-
-var importFormat = {
-    "json": JSON.parse,
-    "exf": function(str) {
-        let data = JSON.parse(atob(str.substring(1)));
-        let puzzle = {};
-        puzzle["metadata"] = data[0];
-        puzzle["dimensions"] = data[1];
-        puzzle["answers"] = [];
-        for (let i = 0; i < puzzle["dimensions"][1]; i++) {
-            let row = [];
-            for (let j = 0; j < puzzle["dimensions"][0]; j++) {
-                let ans = data[2][i * puzzle["dimensions"][0] + j];
-                row.push(ans == "0" ? null : ans == " " ? "" : ans);
-            }
-            puzzle["answers"].push(row);
-        }
-        puzzle["clues"] = {
-            "across": data[3],
-            "down": data[4]
-        };
-        return puzzle;
-    }
-};

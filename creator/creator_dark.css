@@ -33,7 +33,7 @@ button.mode[data-value=write] {
 	background-image: url("../res/write_dark.svg");
 }
 
-button.option {
+.toolbar-item .option {
 	border: medium darkgray solid;
 	background-color: rgb(8, 10, 12);
 }
