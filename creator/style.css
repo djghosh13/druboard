@@ -58,7 +58,7 @@ h1.header {
 
 div.input-row {
 	display: flex;
-	justify-content: space-around;
+	justify-content: space-evenly;
 }
 
 button.increment {

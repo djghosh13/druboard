@@ -1079,7 +1079,9 @@ class SaveLoad {
                             gc.structure.cellToClue[i][j]["down"] === null)
                         value = "";
                     row.push(value);
-                    if (!value) puzzle["metadata"]["valid"] = false;
+                    if (!value) {
+                        puzzle["metadata"]["valid"] = false;
+                    }
                 } else {
                     row.push(null);
                 }
@@ -1092,7 +1094,7 @@ class SaveLoad {
             for (let entry of clues) {
                 puzzle["clues"][dir].push(entry.querySelector(".clue-desc").innerText);
             }
-            let nclues = gc.structure.clueToCell.reduce((a, c) => a + (c[dir].length != 0));
+            let nclues = gc.structure.clueToCell.reduce((a, c) => a + (c[dir].length != 0), 0);
             if (clues.length != nclues) {
                 puzzle["metadata"]["valid"] = false;
             }
