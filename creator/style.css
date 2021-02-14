@@ -35,6 +35,12 @@ button {
 	flex-direction: column;
 	font-size: var(--ui-size);
 	flex: 0 0 10%;
+    overflow-y: scroll;
+    scrollbar-width: 0;
+}
+
+#toolbar::-webkit-scrollbar {
+	display: none;
 }
 
 #toolbar .toolbar-item {
@@ -312,13 +318,14 @@ button.add-item {
 /* Rentable link */
 
 a#rentable-link {
-    position: fixed;
-    bottom: 8px;
-    left: 8px;
+    position: relative;
+    bottom: 0px;
+    left: 0px;
     width: calc(var(--ui-size) * 4);
     height: calc(var(--ui-size) * 4);
     font-family: Georgia, 'Times New Roman', Times, serif;
     font-size: calc(var(--ui-size) * 1.4);
+    margin: auto;
 }
 
 a#rentable-link:hover, a#rentable-link:visited, a#rentable-link:link, a#rentable-link:active {

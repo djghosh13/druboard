@@ -145,8 +145,5 @@ button.delete {
 
 a#rentable-link .icon {
     background-image: url("../res/rentable_logo.svg");
+	box-shadow: 0 0 12px rgba(104, 94, 4, 50%);
 }
-
-/* a#rentable-link:hover .icon {
-	box-shadow: 0 0 12px rgb(104, 94, 4);
-} */
