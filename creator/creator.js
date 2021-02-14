@@ -1,3 +1,4 @@
+// Base actors
 class Grid {
     constructor(element) {
         this.width = 1;
@@ -511,6 +512,7 @@ class GridSelector {
 }
 
 
+// Main controller
 class GridController {
     constructor(gridElement) {
         this.grid = new Grid(gridElement);
@@ -521,14 +523,13 @@ class GridController {
         // UI
         this.mode = "mark";
         this.symmetry = false;
+        this.theme = "light";
     }
 
     init(...additionalActors) {
         let game = this;
         this.actors = [...this.actors, ...additionalActors];
-        // Initialize additional actors
-        additionalActors.forEach(x => x.init());
-        // Setup UI events
+        // Bind UI handlers
         for (let element of document.querySelectorAll("button.increment")) {
             element.addEventListener("click", function(event) {
                 if (this.getAttribute("data-property") == "width") {
@@ -544,23 +545,48 @@ class GridController {
                 }
             });
         }
-
+        // Edit mode setting
         for (let element of document.querySelectorAll("button.mode")) {
             element.addEventListener("click", function(event) {
                 game.mode = this.getAttribute("data-value");
+                window.localStorage.setItem("setting-mode", game.mode);
                 for (let elem of document.querySelectorAll("button.mode")) {
                     elem.nextElementSibling.classList.remove("selected");
                 }
                 this.nextElementSibling.classList.add("selected");
             });
         }
-
+        if (window.localStorage.getItem("setting-mode") !== null) {
+            let savedMode = window.localStorage.getItem("setting-mode");
+            document.querySelector("button.mode[data-value=" + savedMode + "]").click();
+        }
+        // Theme setting
+        document.querySelector("button.option[data-action=theme]").addEventListener("click", function(event) {
+            game.theme = game.theme == "light" ? "dark" : "light";
+            window.localStorage.setItem("setting-theme", game.theme);
+            let stylesheet = "creator_" + game.theme + ".css";
+            this.querySelector(".toggle-theme").innerText = game.theme.toUpperCase();
+            document.querySelector("#theme-style").setAttribute("href", stylesheet);
+        });
+        if (window.localStorage.getItem("setting-theme") !== null) {
+            let savedTheme = window.localStorage.getItem("setting-theme");
+            if (savedTheme != this.theme) {
+                document.querySelector("button.option[data-action=theme]").click();
+            }
+        }
+        // Symmetry setting
         document.querySelector("button.option[data-action=symmetry]").addEventListener("click", function(event) {
             game.symmetry = !game.symmetry;
+            window.localStorage.setItem("setting-symmetry", game.symmetry);
             this.querySelector(".toggle").classList.toggle("on", game.symmetry);
             this.querySelector(".toggle").innerText = game.symmetry ? "ON" : "OFF";
         });
-
+        if (window.localStorage.getItem("setting-symmetry") !== null) {
+            if (window.localStorage.getItem("setting-symmetry") != "false") {
+                document.querySelector("button.option[data-action=symmetry]").click();
+            }
+        }
+        // Keyboard controls
         document.addEventListener("keydown", function(event) {
             if (event.repeat || event.altKey) return;
             if (document.querySelector("#clues-across").contains(event.target) ||
@@ -600,6 +626,8 @@ class GridController {
             }
             event.preventDefault();
         });
+        // Initialize additional actors
+        additionalActors.forEach(x => x.init());
         // Initial grid size
         this.takeAction(this.grid.actionResize("width", 3));
         this.takeAction(this.grid.actionResize("height", 3));
@@ -687,17 +715,53 @@ class GridController {
 }
 
 
+// Additional actors
 class ClueController {
     constructor(gridController, acrossElement, downElement) {
-        this.gridController = gridController;
+        this.controller = gridController;
         this.element = {
             "across": acrossElement,
             "down": downElement
         };
+        // Handlers
+        this.focusHandler = null;
+        this.moveUpHandler = null;
+        this.moveDownHandler = null;
+        this.deleteHandler = null;
     }
 
     init() {
         let cc = this;
+        // Handlers
+        this.focusHandler = function(event) {
+            let clueidx = this.parentNode.querySelector(".clue-label").innerText;
+            if (clueidx) {
+                let idx = parseInt(clueidx) - 1;
+                let dir = cc.element["down"].contains(this) ? "down" : "across";
+                cc.controller.selector.selectClue(idx, dir);
+            }
+        };
+        this.moveUpHandler = function(event) {
+            let entry = this.parentNode;
+            if (entry.previousElementSibling != null) {
+                entry.parentNode.insertBefore(entry, entry.previousElementSibling);
+            }
+            cc.refresh();
+            entry.querySelector(".clue-desc").focus();
+        };
+        this.moveDownHandler = function(event) {
+            let entry = this.parentNode;
+            if (entry.nextElementSibling != null) {
+                entry.parentNode.insertBefore(entry.nextElementSibling, entry);
+            }
+            cc.refresh();
+            entry.querySelector(".clue-desc").focus();
+        };
+        this.deleteHandler = function(event) {
+            this.parentNode.remove();
+            cc.refresh();
+        }
+        // Bind handlers
         for (let element of document.querySelectorAll("button.add-item")) {
             element.addEventListener("click", function(event) {
                 cc.addClue(this.getAttribute("data-value"));
@@ -733,9 +797,9 @@ class ClueController {
         for (let dir of ["across", "down"]) {
             let idx = 0;
             for (let entry of this.element[dir].querySelectorAll(".clue-entry")) {
-                while (idx < this.gridController.structure.clueToCell.length &&
-                        !this.gridController.structure.clueToCell[idx][dir].length) idx++;
-                if (idx < this.gridController.structure.clueToCell.length) {
+                while (idx < this.controller.structure.clueToCell.length &&
+                        !this.controller.structure.clueToCell[idx][dir].length) idx++;
+                if (idx < this.controller.structure.clueToCell.length) {
                     entry.querySelector(".clue-label").innerText = idx + 1;
                     idx++;
                 } else {
@@ -755,23 +819,22 @@ class ClueController {
         clue.setAttribute("contentEditable", "true");
         clue.className = "clue-desc";
         clue.innerText = "...";
-        clue.addEventListener("focus", uiFocusClue);
+        clue.addEventListener("focus", this.focusHandler);
         entry.appendChild(clue);
         let moveup = document.createElement("button");
         moveup.className = "moveup";
-        moveup.addEventListener("click", uiClickMoveUp);
+        moveup.addEventListener("click", this.moveUpHandler);
         let movedown = document.createElement("button");
         movedown.className = "movedown";
-        movedown.addEventListener("click", uiClickMoveDown);
+        movedown.addEventListener("click", this.moveDownHandler);
         let del = document.createElement("button");
         del.className = "delete";
-        del.addEventListener("click", uiClickDelete);
+        del.addEventListener("click", this.deleteHandler);
         entry.appendChild(moveup);
         entry.appendChild(movedown);
         entry.appendChild(del);
         this.element[dir].appendChild(entry);
         entry.scrollIntoView();
-        //
         this.refresh();
         return entry;
     }
@@ -909,7 +972,170 @@ class WordSuggestor {
 }
 
 
-// Main code
+class SaveLoad {
+    constructor(gridController, clueController) {
+        this.gridController = gridController;
+        this.clueController = clueController;
+        // Handlers
+        this.exportHandler = null;
+        this.importHandler = null;
+        this.pasteHandler = null;
+    }
+
+    init() {
+        let sl = this;
+        // Handlers
+        this.exportHandler = function(event) {
+            let data = exportFormat[this.getAttribute("data-value")](sl.exportObject());
+            if (data) {
+                navigator.clipboard.writeText(data).then(
+                    () => alert("Successfully copied to clipboard!"),
+                    () => alert("Error: Failed to copy to clipboard")
+                );
+            }
+        };
+        this.pasteHandler = function(event) {
+            let data = (event.clipboardData || window.clipboardData).getData("text");
+            if (data) {
+                let fmt = sl.detectFormat(data);
+                if (fmt) {
+                    sl.importObject(importFormat[fmt](data));
+                    console.log("Imported clipboard data");
+                } else {
+                    alert("Error: Unrecognized format");
+                }
+            } else {
+                console.error("No clipboard data to import");
+            }
+            this.removeEventListener("paste", sl.pasteHandler);
+        };
+        this.importHandler = function(event) {
+            document.addEventListener("paste", sl.pasteHandler);
+        };
+        // Bind handlers
+        document.querySelectorAll("button.option[data-action=export]").forEach(
+            x => x.addEventListener("click", this.exportHandler)
+        );
+        document.querySelectorAll("button.option[data-action=import]").forEach(
+            x => x.addEventListener("click", this.importHandler)
+        );
+    }
+
+    doAction(action, render = false) {
+        switch (action["type"]) {
+            case "mark":
+            case "resize-width":
+            case "resize-height":
+            case "edit":
+                this.refresh();
+            default:
+        }
+        return action;
+    }
+
+    undoAction(action, render = false) {
+        switch (action["type"]) {
+            case "mark":
+            case "resize-width":
+            case "resize-height":
+            case "edit":
+                this.refresh();
+            default:
+        }
+        return action;
+    }
+
+    refresh() {
+        // Save to local storage
+    }
+
+    exportObject() {
+        let puzzle = {
+            "metadata": {
+                "valid": true,
+                "title": "",
+                "author": ""
+            },
+            "dimensions": [],
+            "answers": [],
+            "clues": {
+                "across": [],
+                "down": []
+            }
+        };
+        let gc = this.gridController, cc = this.clueController;
+        // Metadata
+        puzzle["metadata"]["title"] = document.querySelector(".head-title").innerText;
+        puzzle["metadata"]["author"] = document.querySelector(".head-byline").innerText;
+        // Get dimensions
+        puzzle["dimensions"] = [gc.grid.width, gc.grid.height];
+        // Fill in answers
+        for (let i = 0; i < gc.grid.height; i++) {
+            let row = [];
+            for (let j = 0; j < gc.grid.width; j++) {
+                if (gc.grid.isOpen(i, j)) {
+                    let value = gc.grid.state[i][j]["value"];
+                    if (gc.structure.cellToClue[i][j]["across"] === null &&
+                            gc.structure.cellToClue[i][j]["down"] === null)
+                        value = "";
+                    row.push(value);
+                    if (!value) puzzle["metadata"]["valid"] = false;
+                } else {
+                    row.push(null);
+                }
+            }
+            puzzle["answers"].push(row);
+        }
+        // Retrieve clues
+        for (let dir of ["across", "down"]) {
+            let clues = cc.element[dir].querySelectorAll(".clue-entry")
+            for (let entry of clues) {
+                puzzle["clues"][dir].push(entry.querySelector(".clue-desc").innerText);
+            }
+            let nclues = gc.structure.clueToCell.reduce((a, c) => a + (c[dir].length != 0));
+            if (clues.length != nclues) {
+                puzzle["metadata"]["valid"] = false;
+            }
+        }
+        return puzzle;
+    }
+
+    importObject(puzzle) {
+        let gc = this.gridController, cc = this.clueController;
+        gc.takeAction(gc.grid.actionResize("width", puzzle["dimensions"][0]));
+        gc.takeAction(gc.grid.actionResize("height", puzzle["dimensions"][1]));
+        // Answers
+        let actions = [];
+        for (let i = 0; i < gc.grid.height; i++) {
+            for (let j = 0; j < gc.grid.width; j++) {
+                actions = [...gc.grid.actionToggleCell(i, j, puzzle["answers"][i][j] !== null), ...actions];
+                if (puzzle["answers"][i][j] !== null) {
+                    actions = [...gc.grid.actionEditCell(i, j, puzzle["answers"][i][j]), ...actions];
+                }
+            }
+        }
+        gc.takeAction(actions);
+        // Clues
+        cc.clear();
+        for (let dir of ["across", "down"]) {
+            for (let clue of puzzle["clues"][dir]) {
+                cc.addClue(dir).querySelector(".clue-desc").innerText = clue;
+            }
+        }
+        // Metadata
+        document.querySelector(".head-title").innerText = puzzle["metadata"]["title"] || "";
+        document.querySelector(".head-byline").innerText = puzzle["metadata"]["author"] || "";
+    }
+
+    detectFormat(data) {
+        if (data.startsWith("{")) return "json";
+        if (data.startsWith("*")) return "exf";
+        return "";
+    }
+}
+
+
+// Runtime code
 const gridElement = document.getElementById("main-grid");
 const acrossElement = document.getElementById("clues-across");
 const downElement = document.getElementById("clues-down");
@@ -918,7 +1144,8 @@ const suggestElement = document.getElementById("auto-suggest");
 var game = new GridController(gridElement);
 var cc = new ClueController(game, acrossElement, downElement);
 var ws = new WordSuggestor(game, game.selector, suggestElement);
-game.init(cc, ws);
+var sl = new SaveLoad(game, cc);
+game.init(cc, ws, sl);
 
 // UI functions
 function uiClickCell(event) {
@@ -926,41 +1153,6 @@ function uiClickCell(event) {
     let i = parseInt(selection[1]);
     let j = parseInt(selection[2]);
     game.actionClickCell(i, j);
-    event.preventDefault();
-}
-
-function uiFocusClue(event) {
-    let clueidx = this.parentNode.querySelector(".clue-label").innerText;
-    if (clueidx) {
-        let idx = parseInt(clueidx) - 1;
-        let dir = this.parentNode.parentNode.getAttribute("id").split("-")[1];
-        game.selector.selectClue(idx, dir);
-    }
-}
-
-function uiClickMoveUp(event) {
-    let entry = this.parentNode;
-    if (entry.previousElementSibling != null) {
-        entry.parentNode.insertBefore(entry, entry.previousElementSibling);
-    }
-    cc.refresh();
-    entry.querySelector(".clue-desc").focus();
-    event.preventDefault();
-}
-
-function uiClickMoveDown(event) {
-    let entry = this.parentNode;
-    if (entry.nextElementSibling != null) {
-        entry.parentNode.insertBefore(entry.nextElementSibling, entry);
-    }
-    cc.refresh();
-    entry.querySelector(".clue-desc").focus();
-    event.preventDefault();
-}
-
-function uiClickDelete(event) {
-    this.parentNode.remove();
-    cc.refresh();
     event.preventDefault();
 }
     
@@ -972,79 +1164,7 @@ function otherDirection(dir) {
     }[dir];
 }
 
-function exportJSON() {
-    let puzzle = {
-        "metadata": {
-            "valid": true,
-            "title": "",
-            "author": ""
-        },
-        "dimensions": [game.grid.width, game.grid.height],
-        "answers": [],
-        "clues": {
-            "across": [],
-            "down": []
-        }
-    };
-    // Metadata
-    puzzle["metadata"]["title"] = document.querySelector(".head-title").innerText;
-    puzzle["metadata"]["author"] = document.querySelector(".head-byline").innerText;
-    // Fill in answers
-    for (let i = 0; i < game.grid.height; i++) {
-        let row = [];
-        for (let j = 0; j < game.grid.width; j++) {
-            if (game.grid.isOpen(i, j)) {
-                let value = game.grid.state[i][j]["value"];
-                if (game.structure.cellToClue[i][j]["across"] === null &&
-                        game.structure.cellToClue[i][j]["down"] === null)
-                    value = "";
-                row.push(value);
-                if (!value) puzzle["metadata"]["valid"] = false;
-            } else {
-                row.push(null);
-            }
-        }
-        puzzle["answers"].push(row);
-    }
-    // Retrieve clues
-    for (let dir of ["across", "down"]) {
-        let clues = cc.element[dir].querySelectorAll(".clue-entry")
-        for (let entry of clues) {
-            puzzle["clues"][dir].push(entry.querySelector(".clue-desc").innerText);
-        }
-        let nclues = game.structure.clueToCell.reduce((a, c) => a + (c[dir].length != 0));
-        if (clues.length != nclues) {
-            puzzle["metadata"]["valid"] = false;
-        }
-    }
-    return puzzle;
-}
-
-function importJSON(puzzle) {
-    game.takeAction(game.grid.actionResize("width", puzzle["dimensions"][0]));
-    game.takeAction(game.grid.actionResize("height", puzzle["dimensions"][1]));
-    // Answers
-    let actions = [];
-    for (let i = 0; i < game.grid.height; i++) {
-        for (let j = 0; j < game.grid.width; j++) {
-            actions = [...game.grid.actionToggleCell(i, j, puzzle["answers"][i][j] !== null), ...actions];
-            if (puzzle["answers"][i][j] !== null) {
-                actions = [...game.grid.actionEditCell(i, j, puzzle["answers"][i][j]), ...actions];
-            }
-        }
-    }
-    game.takeAction(actions);
-    // Clues
-    cc.clear();
-    for (let dir of ["across", "down"]) {
-        for (let clue of puzzle["clues"][dir]) {
-            cc.addClue(dir).querySelector(".clue-desc").innerText = clue;
-        }
-    }
-    // Metadata
-    document.querySelector(".head-title").innerText = puzzle["metadata"]["title"] || "";
-    document.querySelector(".head-byline").innerText = puzzle["metadata"]["author"] || "";
-}
+// Export/import
 
 var exportFormat = {
     "json": JSON.stringify,
@@ -1059,15 +1179,14 @@ var exportFormat = {
         }
         data.push(answerStr);
         data = [...data, puzzle["clues"]["across"], puzzle["clues"]["down"]];
-        return btoa(JSON.stringify(data));
-    },
-    "rxf": () => alert("RXF support coming soon!")
+        return "*" + btoa(JSON.stringify(data));
+    }
 };
 
 var importFormat = {
     "json": JSON.parse,
     "exf": function(str) {
-        let data = JSON.parse(atob(str));
+        let data = JSON.parse(atob(str.substring(1)));
         let puzzle = {};
         puzzle["metadata"] = data[0];
         puzzle["dimensions"] = data[1];
@@ -1085,52 +1204,5 @@ var importFormat = {
             "down": data[4]
         };
         return puzzle;
-    },
-    "rxf": () => alert("Unrecognized format")
+    }
 };
-
-for (let element of document.querySelectorAll("button.option[data-action=export]")) {
-    element.addEventListener("click", function(event) {
-        let data = exportFormat[this.getAttribute("data-value")](exportJSON());
-        if (data) {
-            navigator.clipboard.writeText(data).then(function() {
-                alert("Successfully copied to clipboard!");
-            }, function() {
-                alert("Error: Failed to copy to clipboard.");
-            });
-        }
-    });
-}
-
-for (let element of document.querySelectorAll("button.option[data-action=import]")) {
-    element.addEventListener("click", function(event) {
-        let pasteHandler = function(event) {
-            let data = (event.clipboardData || window.clipboardData).getData("text");
-            if (data) {
-                for (let fmt in importFormat) {
-                    try {
-                        importJSON(importFormat[fmt](data));
-                        console.log("Imported clipboard data");
-                        break;
-                    } catch (e) {
-
-                    }
-                }
-            } else {
-                console.error("No clipboard data to import");
-            }
-            this.removeEventListener("paste", pasteHandler);
-        };
-        document.addEventListener("paste", pasteHandler);
-    });
-}
-
-// Light/dark themes
-
-document.querySelector("button.option[data-action=theme]").addEventListener("click", function(event) {
-    let stylesheet = document.querySelector("#theme-style").getAttribute("href");
-    let newmode = stylesheet.includes("light") ? "dark" : "light";
-    stylesheet = "creator_" + newmode + ".css";
-    this.querySelector(".toggle-theme").innerText = newmode.toUpperCase();
-    document.querySelector("#theme-style").setAttribute("href", stylesheet);
-});
