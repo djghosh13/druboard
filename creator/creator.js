@@ -434,14 +434,14 @@ class GridSelector {
         if (this.selected) return;
         for (let i = 0; i < this.grid.height; i++) {
             for (let j = 0; j < this.grid.width; j++) {
-                if (this.selector.getClue(i, j, "across") !== null) {
+                if (this.structure.getClue(i, j, "across") !== null) {
                     this.selected = true;
                     this.cell = [i, j];
                     this.direction = "across";
                     this.render();
                     return true;
                 }
-                if (this.selector.getClue(i, j, "down") !== null) {
+                if (this.structure.getClue(i, j, "down") !== null) {
                     this.selected = true;
                     this.cell = [i, j];
                     this.direction = "down";
