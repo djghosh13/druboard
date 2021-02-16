@@ -1,13 +1,27 @@
 // Word suggestion using Datamuse API
 // https://www.datamuse.com/
 
-function requestAutofill(pattern, maxwords = 10, cached = false) {
-    if (cached !== false) return Promise.resolve(cached);
-    // Not cached
-    let query = pattern.reduce((a, x) => a + (x || "?"), "").toLowerCase();
-    let url = "https://api.datamuse.com/words?sp=" + query;
-    return fetch(url).then(response => response.json()).then(words => {
-        if (words.length > maxwords) words.length = maxwords;
-        return words.map(x => x["word"].toUpperCase());
-    });
+const maxCacheSize = 100;
+autofillCache = new Map();
+
+async function requestAutofill(pattern, maxwords, refresh) {
+    let query = pattern.toLowerCase();
+    let words;
+    if (autofillCache.has(query)) {
+        words = [...autofillCache.get(query)];
+    } else {
+        let url = "https://api.datamuse.com/words?sp=" + query;
+        const response = await fetch(url);
+        words = await response.json();
+        autofillCache.set(query, [...words]);
+        if (autofillCache.size > maxCacheSize) {
+            for (let firstkey of autofillCache.keys()) {
+                autofillCache.delete(firstkey);
+                break;
+            }
+        }
+    }
+    if (refresh) await new Promise(r => setTimeout(r, 200));
+    if (words.length > maxwords) words.length = maxwords;
+    return words.map(x => x["word"].toUpperCase());
 }

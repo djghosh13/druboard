@@ -528,7 +528,7 @@ class GridController {
         let game = this;
         this.actors = [...this.actors, ...additionalActors];
         // Bind UI handlers
-        for (let element of document.querySelectorAll("button.increment")) {
+        for (let element of document.querySelectorAll("div.increment")) {
             element.addEventListener("click", function(event) {
                 if (this.getAttribute("data-property") == "width") {
                     let width = game.grid.width + parseInt(this.getAttribute("data-value"));
@@ -544,11 +544,11 @@ class GridController {
             });
         }
         // Edit mode setting
-        for (let element of document.querySelectorAll("button.mode")) {
+        for (let element of document.querySelectorAll("div.mode")) {
             element.addEventListener("click", function(event) {
                 game.mode = this.getAttribute("data-value");
                 window.localStorage.setItem("setting-mode", game.mode);
-                for (let elem of document.querySelectorAll("button.mode")) {
+                for (let elem of document.querySelectorAll("div.mode")) {
                     elem.nextElementSibling.classList.remove("selected");
                 }
                 this.nextElementSibling.classList.add("selected");
@@ -556,10 +556,10 @@ class GridController {
         }
         if (window.localStorage.getItem("setting-mode") !== null) {
             let savedMode = window.localStorage.getItem("setting-mode");
-            document.querySelector("button.mode[data-value=" + savedMode + "]").click();
+            document.querySelector("div.mode[data-value=" + savedMode + "]").click();
         }
         // Theme setting
-        document.querySelector("button.option[data-action=theme]").addEventListener("click", function(event) {
+        document.querySelector("div.option[data-action=theme]").addEventListener("click", function(event) {
             game.theme = game.theme == "light" ? "dark" : "light";
             window.localStorage.setItem("setting-theme", game.theme);
             let stylesheet = "creator_" + game.theme + ".css";
@@ -569,11 +569,11 @@ class GridController {
         if (window.localStorage.getItem("setting-theme") !== null) {
             let savedTheme = window.localStorage.getItem("setting-theme");
             if (savedTheme != this.theme) {
-                document.querySelector("button.option[data-action=theme]").click();
+                document.querySelector("div.option[data-action=theme]").click();
             }
         }
         // Symmetry setting
-        document.querySelector("button.option[data-action=symmetry]").addEventListener("click", function(event) {
+        document.querySelector("div.option[data-action=symmetry]").addEventListener("click", function(event) {
             game.symmetry = !game.symmetry;
             window.localStorage.setItem("setting-symmetry", game.symmetry);
             this.querySelector(".toggle").classList.toggle("on", game.symmetry);
@@ -581,7 +581,7 @@ class GridController {
         });
         if (window.localStorage.getItem("setting-symmetry") !== null) {
             if (window.localStorage.getItem("setting-symmetry") != "false") {
-                document.querySelector("button.option[data-action=symmetry]").click();
+                document.querySelector("div.option[data-action=symmetry]").click();
             }
         }
         // Keyboard controls
@@ -761,9 +761,10 @@ class ClueController {
             cc.refresh();
         }
         // Bind handlers
-        for (let element of document.querySelectorAll("button.add-item")) {
+        for (let element of document.querySelectorAll("div.add-item")) {
             element.addEventListener("click", function(event) {
-                cc.addClue(this.getAttribute("data-value"));
+                let entry = cc.addClue(this.getAttribute("data-value"));
+                entry.querySelector(".clue-desc").focus();
             });
         }
     }
@@ -817,17 +818,17 @@ class ClueController {
         let clue = document.createElement("div");
         clue.setAttribute("contentEditable", "true");
         clue.className = "clue-desc";
-        clue.innerText = "...";
+        clue.innerText = "";
         clue.addEventListener("focus", this.focusHandler);
         entry.appendChild(clue);
-        let moveup = document.createElement("button");
-        moveup.className = "moveup";
+        let moveup = document.createElement("div");
+        moveup.className = "clue-action moveup";
         moveup.addEventListener("click", this.moveUpHandler);
-        let movedown = document.createElement("button");
-        movedown.className = "movedown";
+        let movedown = document.createElement("div");
+        movedown.className = "clue-action movedown";
         movedown.addEventListener("click", this.moveDownHandler);
-        let del = document.createElement("button");
-        del.className = "delete";
+        let del = document.createElement("div");
+        del.className = "clue-action delete";
         del.addEventListener("click", this.deleteHandler);
         entry.appendChild(moveup);
         entry.appendChild(movedown);
@@ -853,34 +854,43 @@ class WordSuggestor {
         // State
         this.searching = false;
         this.promise = null;
+        this.previousQuery = "";
         this.clueidx = 0;
         this.cluedir = "across";
-        this.cachedResults = null;
         // Handlers
         this.searchHandler = null;
         this.closeHandler = null;
         this.clickHandler = null;
     }
 
+    queryInfo() {
+        if (!this.searching && this.selector.selected) {
+            let letters = this.selector.selectedClue().map(cell => {
+                return this.controller.grid.state[cell[0]][cell[1]]["value"];
+            });
+            if (letters.reduce((a, x) => a || x, false) && !letters.reduce((a, x) => a && x, true)) {
+                let word = letters.reduce((a, x) => a + (x || "?"), "");
+                let clueidx = this.controller.structure.getClue(...this.selector.cell, this.selector.direction);
+                let cluedir = this.selector.direction;
+                return [word, clueidx, cluedir];
+            }
+        }
+        return null;
+    }
+
     init() {
         let ws = this;
         // Handlers
         this.searchHandler = function(event) {
-            if (!ws.searching && ws.selector.selected) {
-                let word = ws.selector.selectedClue().map(cell => {
-                    return ws.controller.grid.state[cell[0]][cell[1]]["value"];
-                });
-                // Abort if clue is empty or filled in
-                if (!word.reduce((a, x) => a || x, false) || word.reduce((a, x) => a && x, true)) return;
-                // Save reference to clue
-                let clueidx = ws.controller.structure.getClue(...ws.selector.cell, ws.selector.direction);
-                let cluedir = ws.selector.direction;
-                let cached = clueidx == ws.clueidx && cluedir == ws.cluedir && ws.cachedResults !== null;
-                ws.clueidx = clueidx, ws.cluedir = cluedir;
+            let refresh = event === null;
+            let newQuery = ws.queryInfo();
+            if (newQuery !== null) {
+                let [word, clueidx, cluedir] = newQuery;
+                ws.previousQuery = word, ws.clueidx = clueidx, ws.cluedir = cluedir;
                 // Search up word
                 ws.searching = true;
                 let maxwords = Math.floor(48 / Math.max(word.length, 4));
-                let promise = ws.promise = requestAutofill(word, maxwords, cached && ws.cachedResults);
+                let promise = ws.promise = requestAutofill(word, maxwords, refresh);
                 promise.then(function(wordlist) {
                     // Abort if no longer needed
                     if (ws.promise !== promise) return;
@@ -898,12 +908,12 @@ class WordSuggestor {
                     ws.element.classList.add("open-bar");
                     ws.element.querySelector("#suggest").removeEventListener("click", ws.searchHandler);
                     ws.element.querySelector("#suggest").addEventListener("click", ws.closeHandler);
-                    ws.cachedResults = wordlist;
                     ws.searching = false;
                 });
             }
         };
         this.closeHandler = function(event) {
+            // Start closing results bar
             ws.element.classList.remove("open-bar");
             let listElement = ws.element.querySelector("#suggestions");
             listElement.querySelectorAll("div.suggestion-result").forEach(x => x.removeEventListener("click", ws.clickHandler));
@@ -912,6 +922,16 @@ class WordSuggestor {
             ws.element.querySelector("#suggest").removeEventListener("click", ws.closeHandler);
             ws.element.querySelector("#suggest").removeEventListener("click", ws.searchHandler);
             ws.element.querySelector("#suggest").addEventListener("click", ws.searchHandler);
+            // Re-initiate search if on different clue
+            if (this == ws.element.querySelector("#suggest")) {
+                let newQuery = ws.queryInfo();
+                if (newQuery !== null) {
+                    let [word, clueidx, cluedir] = newQuery;
+                    if (word != ws.previousQuery || clueidx != ws.clueidx || cluedir != ws.cluedir) {
+                        ws.searchHandler(null);
+                    }
+                }
+            }
         };
         this.clickHandler = function(event) {
             let word = this.innerText.replace(/[^A-Z]/g, "");
@@ -923,7 +943,7 @@ class WordSuggestor {
                 }
                 ws.controller.takeAction(actions);
             }
-            ws.closeHandler(event);
+            ws.closeHandler(null);
         };
         // Bind handlers
         this.element.querySelector("#suggest").addEventListener("click", this.searchHandler);
@@ -936,10 +956,8 @@ class WordSuggestor {
             case "resize-width":
             case "resize-height":
                 this.reset();
-                break;
             case "edit":
             default:
-                this.refresh();
         }
         return action;
     }
@@ -950,22 +968,15 @@ class WordSuggestor {
             case "resize-width":
             case "resize-height":
                 this.reset();
-                break;
             case "edit":
             default:
-                this.refresh();
         }
         return action;
-    }
-
-    refresh() {
-        this.cachedResults = false;
     }
 
     reset() {
         this.searching = false;
         this.promise = null;
-        this.refresh();
         this.closeHandler(null);
     }
 }
@@ -1047,7 +1058,7 @@ class SaveLoad {
             } else {
                 console.error("No clipboard data to import");
             }
-            document.querySelectorAll("button.option[data-action=import]").forEach(
+            document.querySelectorAll("div.option[data-action=import]").forEach(
                 x => x.innerText = "Import"
             );
             this.removeEventListener("paste", sl.pasteHandler);
@@ -1070,10 +1081,10 @@ class SaveLoad {
             }
         }
         // Bind handlers
-        document.querySelectorAll("button.option[data-action=export]").forEach(
+        document.querySelectorAll("div.option[data-action=export]").forEach(
             x => x.addEventListener("click", this.exportHandler)
         );
-        document.querySelectorAll("button.option[data-action=import]").forEach(
+        document.querySelectorAll("div.option[data-action=import]").forEach(
             x => x.addEventListener("click", this.importHandler)
         );
         document.querySelectorAll("a.option[data-action=download]").forEach(

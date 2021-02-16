@@ -3,7 +3,7 @@ body {
 	color: white;
 }
 
-button {
+button { /* Don't use buttons */
 	color: white;
 }
 
@@ -13,11 +13,11 @@ button {
 	border-right: medium lightgray solid;
 }
 
-button.increment[data-value="1"] {
+div.increment[data-value="1"] {
 	background-image: url("../res/plus_dark.svg");
 }
 
-button.increment[data-value="-1"] {
+div.increment[data-value="-1"] {
 	background-image: url("../res/minus_dark.svg");
 }
 
@@ -25,11 +25,11 @@ button.increment[data-value="-1"] {
 	background-color: rgb(0, 194, 32);
 }
 
-button.mode[data-value=mark] {
+div.mode[data-value=mark] {
 	background-image: url("../res/mark_dark.svg");
 }
 
-button.mode[data-value=write] {
+div.mode[data-value=write] {
 	background-image: url("../res/write_dark.svg");
 }
 
@@ -97,7 +97,7 @@ span.toggle.on {
 	border-bottom: medium lightgray solid;
 }
 
-button.add-item {
+div.add-item {
 	border-bottom: thin lightgray solid;
 }
 
@@ -113,15 +113,15 @@ div.clue-desc::selection {
 	background-color: rgb(0, 105, 209);
 }
 
-button.moveup {
+div.clue-action.moveup {
 	background-image: url("../res/uparrow_dark.svg");
 }
 
-button.movedown {
+div.clue-action.movedown {
 	background-image: url("../res/downarrow_dark.svg");
 }
 
-button.delete {
+div.clue-action.delete {
 	background-image: url("../res/delete_dark.svg");
 }
 

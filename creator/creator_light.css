@@ -3,7 +3,7 @@ body {
 	color: black;
 }
 
-button {
+button { /* Don't use buttons */
 	color: black;
 }
 
@@ -13,11 +13,11 @@ button {
 	border-right: medium black solid;
 }
 
-button.increment[data-value="1"] {
+div.increment[data-value="1"] {
 	background-image: url("../res/plus.svg");
 }
 
-button.increment[data-value="-1"] {
+div.increment[data-value="-1"] {
 	background-image: url("../res/minus.svg");
 }
 
@@ -25,11 +25,11 @@ button.increment[data-value="-1"] {
 	background-color: rgb(0, 120, 20);
 }
 
-button.mode[data-value=mark] {
+div.mode[data-value=mark] {
 	background-image: url("../res/mark.svg");
 }
 
-button.mode[data-value=write] {
+div.mode[data-value=write] {
 	background-image: url("../res/write.svg");
 }
 
@@ -97,7 +97,7 @@ span.toggle.on {
 	border-bottom: medium black solid;
 }
 
-button.add-item {
+div.add-item {
 	border-bottom: thin black solid;
 }
 
@@ -113,15 +113,15 @@ div.clue-desc::selection {
 	background-color: rgb(94, 168, 241);
 }
 
-button.moveup {
+div.clue-action.moveup {
 	background-image: url("../res/uparrow.svg");
 }
 
-button.movedown {
+div.clue-action.movedown {
 	background-image: url("../res/downarrow.svg");
 }
 
-button.delete {
+div.clue-action.delete {
 	background-image: url("../res/delete.svg");
 }
 

@@ -15,42 +15,42 @@
             <div class="toolbar-item">
                 <h1 class="header">Width</h1>
                 <div class="input-row">
-                    <button class="increment" data-property="width" data-value="-1"></button>
+                    <div class="increment" data-property="width" data-value="-1"></div>
                     <div class="input-value" data-property="width">0</div>
-                    <button class="increment" data-property="width" data-value="1"></button>
+                    <div class="increment" data-property="width" data-value="1"></div>
                 </div>
             </div>
             <div class="toolbar-item">
                 <h1 class="header">Height</h1>
                 <div class="input-row">
-                    <button class="increment" data-property="height" data-value="-1"></button>
+                    <div class="increment" data-property="height" data-value="-1"></div>
                     <div class="input-value" data-property="height">0</div>
-                    <button class="increment" data-property="height" data-value="1"></button>
+                    <div class="increment" data-property="height" data-value="1"></div>
                 </div>
             </div>
             <div class="toolbar-item">
                 <h1 class="header">Mode</h1>
                 <div class="input-row">
                     <div class="single-select">
-                        <button class="mode" data-value="mark"></button>
+                        <div class="mode" data-value="mark"></div>
                         <div class="selector selected"></div>
                     </div>
                     <div class="single-select">
-                        <button class="mode" data-value="write"></button>
+                        <div class="mode" data-value="write"></div>
                         <div class="selector"></div>
                     </div>
                 </div>
             </div>
             <div class="toolbar-item">
                 <h1 class="header">Options</h1>
-                <button class="option" data-action="import"><input type="text" style="display: none" />Import</button>
-                <button class="option" data-action="symmetry">Symmetry<br/><span class="toggle">OFF</span></button>
-                <button class="option" data-action="theme"><span class="toggle-theme">LIGHT</span><br/>Mode</button>
+                <div class="option" data-action="import"><input type="text" style="display: none" />Import</div>
+                <div class="option" data-action="symmetry">Symmetry<br/><span class="toggle">OFF</span></div>
+                <div class="option" data-action="theme"><span class="toggle-theme">LIGHT</span><br/>Mode</div>
             </div>
             <div class="toolbar-item">
                 <h1 class="header">Export</h1>
-                <button class="option" data-action="export" data-value="json">As JSON</button>
-                <button class="option" data-action="export" data-value="exf">Copy to <wbr/> Clipboard</button>
+                <div class="option" data-action="export" data-value="json">As JSON</div>
+                <div class="option" data-action="export" data-value="exf">Copy to <wbr/> Clipboard</div>
                 <a class="option" data-action="download" data-value="exf" download>Download</a>
             </div>
             <div class="toolbar-item">
@@ -76,12 +76,12 @@
         </div>
         <div class="clues-section">
             <h1 class="header">Across</h1>
-            <button class="add-item" data-value="across">Add Clue...</button>
+            <div class="add-item" data-value="across">Add Clue...</div>
             <div id="clues-across" class="clues-list"></div>
         </div>
         <div class="clues-section">
             <h1 class="header">Down</h1>
-            <button class="add-item" data-value="down">Add Clue...</button>
+            <div class="add-item" data-value="down">Add Clue...</div>
             <div id="clues-down" class="clues-list"></div>
         </div>
         <script type="text/javascript" src="creator.js"></script>
