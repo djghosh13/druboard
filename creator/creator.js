@@ -986,6 +986,7 @@ class SaveLoad {
     constructor(gridController, clueController) {
         this.gridController = gridController;
         this.clueController = clueController;
+        this.importMode = false;
         // Handlers
         this.exportHandler = null;
         this.importHandler = null;
@@ -1064,8 +1065,14 @@ class SaveLoad {
             this.removeEventListener("paste", sl.pasteHandler);
         };
         this.importHandler = function(event) {
-            this.innerText = "Ctrl + V";
-            document.addEventListener("paste", sl.pasteHandler);
+            if (!sl.importMode) {
+                this.innerText = "Ctrl + V";
+                document.addEventListener("paste", sl.pasteHandler);
+            } else {
+                this.innerText = "Import";
+                document.removeEventListener("paste", sl.pasteHandler);
+            }
+            sl.importMode = !sl.importMode;
         };
         this.downloadHandler = function(event) {
             // Update download link(s)

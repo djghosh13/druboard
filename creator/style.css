@@ -245,6 +245,7 @@ div.add-item {
 	cursor: text;
 	font-family: Georgia, 'Times New Roman', Times, serif;
 	line-height: normal;
+	padding: 0 4px;
 }
 
 .clue-entry div.clue-action {
