@@ -1046,24 +1046,34 @@ class SaveLoad {
                 );
             }
         };
-        this.pasteHandler = function(event) {
-            let data = (event.clipboardData || window.clipboardData).getData("text");
+        this.textHandler = function(data, source) {
             if (data) {
                 let fmt = sl.detectFormat(data);
                 if (fmt) {
                     sl.importObject(sl.importFormat[fmt](data));
-                    console.log("Imported clipboard data");
+                    console.log("Imported data from " + source + ".");
                 } else {
                     alert("Error: Unrecognized format");
                 }
             } else {
-                console.error("No clipboard data to import");
+                console.error("No data from " + source + " to import");
             }
+        };
+        this.pasteHandler = function(event) {
+            let data = (event.clipboardData || window.clipboardData).getData("text");
+            sl.textHandler(data, 'clipboard');
             document.querySelectorAll("div.option[data-action=import]").forEach(
                 x => x.innerText = "Import"
             );
             this.removeEventListener("paste", sl.pasteHandler);
         };
+        this.dropHandler = function(event) {
+            event.preventDefault();
+            hideShadow();
+            let reader = new FileReader();
+            reader.readAsText(event.dataTransfer.files[0]);
+            reader.onloadend = () => {sl.textHandler(reader.result, 'file')}
+        }
         this.importHandler = function(event) {
             if (!sl.importMode) {
                 this.innerText = "Ctrl + V";
@@ -1215,6 +1225,29 @@ class SaveLoad {
     }
 }
 
+// Drag-and-drop
+var lastTarget = null;
+function setUpInput() {
+    window.addEventListener("dragenter", function(e) {
+        lastTarget = e.target;
+        document.querySelector(".dropzone").style.visibility = "";
+        document.querySelector(".dropzone").style.opacity= 1;
+    });
+    window.addEventListener("dragleave", function(e) {
+        if (e.target === lastTarget || e.target === document) {
+            hideShadow();
+        }
+    });
+    window.ondrop = sl.dropHandler;
+    window.ondragover = function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+}
+function hideShadow() {
+    document.querySelector(".dropzone").style.visibility = "hidden";
+    document.querySelector(".dropzone").style.opacity = 0;
+}
 
 // Runtime code
 const gridElement = document.getElementById("main-grid");
@@ -1226,8 +1259,9 @@ var game = new GridController(gridElement);
 var cc = new ClueController(game, acrossElement, downElement);
 var ws = new WordSuggestor(game, game.selector, suggestElement);
 var sl = new SaveLoad(game, cc);
-game.init(cc, ws, sl);
 
+game.init(cc, ws, sl);
+setUpInput();
 // UI functions
 function uiClickCell(event) {
     let selection = this.id.match(/cell-(\d+)-(\d+)/);
@@ -1251,3 +1285,4 @@ function otherDirection(dir) {
         "down": "across"
     }[dir];
 }
+
