@@ -126,6 +126,30 @@ span.toggle, span.toggle-theme {
 	font-weight: bold;
 }
 
+/* File import */
+
+div.dropzone {
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: 1000;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-size: calc(var(--ui-size) * 2);
+	/* Animation */
+	visibility: hidden;
+	opacity: 0;
+	transition: visibility 175ms, opacity 175ms;
+}
+
+div.dropzone.active {
+	visibility: visible;
+	opacity: 100%;
+}
+
 /* Header */
 
 #content {

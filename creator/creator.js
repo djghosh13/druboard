@@ -987,6 +987,7 @@ class SaveLoad {
         this.gridController = gridController;
         this.clueController = clueController;
         this.importMode = false;
+        this.lastDropTarget = null;
         // Handlers
         this.exportHandler = null;
         this.importHandler = null;
@@ -1069,10 +1070,10 @@ class SaveLoad {
         };
         this.dropHandler = function(event) {
             event.preventDefault();
-            hideShadow();
+            document.querySelector(".dropzone").classList.remove("active");
             let reader = new FileReader();
             reader.readAsText(event.dataTransfer.files[0]);
-            reader.onloadend = () => {sl.textHandler(reader.result, 'file')}
+            reader.onloadend = () => sl.textHandler(reader.result, 'file');
         }
         this.importHandler = function(event) {
             if (!sl.importMode) {
@@ -1107,6 +1108,20 @@ class SaveLoad {
         document.querySelectorAll("a.option[data-action=download]").forEach(
             x => x.addEventListener("click", this.downloadHandler)
         );
+        window.addEventListener("dragenter", function(event) {
+            sl.lastDropTarget = event.target;
+            document.querySelector(".dropzone").classList.add("active");
+        });
+        window.addEventListener("dragleave", function(event) {
+            if (event.target === sl.lastDropTarget || event.target === document) {
+                document.querySelector(".dropzone").classList.remove("active");
+            }
+        });
+        window.addEventListener("drop", this.dropHandler);
+        window.addEventListener("dragover", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        });
     }
 
     doAction(action, last = false) {
@@ -1225,30 +1240,6 @@ class SaveLoad {
     }
 }
 
-// Drag-and-drop
-var lastTarget = null;
-function setUpInput() {
-    window.addEventListener("dragenter", function(e) {
-        lastTarget = e.target;
-        document.querySelector(".dropzone").style.visibility = "";
-        document.querySelector(".dropzone").style.opacity= 1;
-    });
-    window.addEventListener("dragleave", function(e) {
-        if (e.target === lastTarget || e.target === document) {
-            hideShadow();
-        }
-    });
-    window.ondrop = sl.dropHandler;
-    window.ondragover = function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-}
-function hideShadow() {
-    document.querySelector(".dropzone").style.visibility = "hidden";
-    document.querySelector(".dropzone").style.opacity = 0;
-}
-
 // Runtime code
 const gridElement = document.getElementById("main-grid");
 const acrossElement = document.getElementById("clues-across");
@@ -1261,7 +1252,7 @@ var ws = new WordSuggestor(game, game.selector, suggestElement);
 var sl = new SaveLoad(game, cc);
 
 game.init(cc, ws, sl);
-setUpInput();
+
 // UI functions
 function uiClickCell(event) {
     let selection = this.id.match(/cell-(\d+)-(\d+)/);
