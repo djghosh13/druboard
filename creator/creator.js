@@ -417,14 +417,14 @@ class GridSelector {
         }
         if (!selected) {
             // Choosing a new cell
-            if (this.structure.getClue(i, j, "across") !== null) {
+            if (this.structure.getClue(i, j, this.direction) !== null) {
                 this.selected = true;
                 this.cell = [i, j];
-                this.direction = "across";
-            } else if (this.structure.getClue(i, j, "down") !== null) {
+                this.direction = this.direction;
+            } else if (this.structure.getClue(i, j, otherDirection(this.direction)) !== null) {
                 this.selected = true;
                 this.cell = [i, j];
-                this.direction = "down";
+                this.direction = otherDirection(this.direction);
             }
         }
         this.render();
