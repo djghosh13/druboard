@@ -1,0 +1,217 @@
+/* Color settings */
+:root {
+    --ON: initial;
+    --OFF: ;
+}
+
+.color-theme-default, .color-theme-light {
+    --light: var(--ON);
+    --dark: var(--OFF);
+}
+
+.color-theme-dark {
+    --light: var(--OFF);
+    --dark: var(--ON);
+}
+
+@media (prefers-color-scheme: dark) {
+    .color-theme-default {
+        --light: var(--OFF);
+        --dark: var(--ON);
+    }
+}
+
+/* Set color variables */
+
+body {
+    --text-color: var(--light, black) var(--dark, #efefef);
+    --bg-color: var(--light, white) var(--dark, #10141b);
+    --content-bg-color: var(--light, honeydew) var(--dark, #1a1f28);
+    /* Grid colors */
+    --blank-cell-color: var(--light, white) var(--dark, #454f5e);
+    --dark-cell-color: var(--light, black) var(--dark, black);
+    --selected-clue-color: var(--light, #94c8ff) var(--dark, #7e3556);
+    --selected-cell-color: var(--light, #1f8fff) var(--dark, #aa0951);
+    /* Border colors */
+    --main-border-color: var(--light, black) var(--dark, lightgray);
+    --button-border-color: var(--light, black) var(--dark, darkgray);
+    /* Other colors */
+    --button-color: var(--light, white) var(--dark, #080a0c);
+    --green-color: var(--light, #007814) var(--dark, #00c220);
+    --red-color: var(--light, #c80000) var(--dark, #c20000);
+    --selection-color: var(--light, #5ea8f1) var(--dark, #2175c9);
+    --dropzone-color: var(--light, rgba(212, 230, 212, 0.85)) var(--dark, rgb(0, 0, 0, 0.8));
+    --rentable-shadow-color: var(--light, rgba(104, 94, 4, 0.5)) var(--dark, rgba(255, 250, 205, 0.2));
+}
+
+/* Style */
+
+body {
+	background-color: var(--bg-color);
+	color: var(--text-color);
+}
+
+/* Toolbar */
+
+#toolbar {
+	border-right: medium var(--main-border-color) solid;
+}
+
+div.increment[data-value="1"] {
+	background-image:
+        var(--light, url("../res/plus.svg"))
+        var(--dark, url("../res/plus_dark.svg"))
+    ;
+}
+
+div.increment[data-value="-1"] {
+	background-image:
+        var(--light, url("../res/minus.svg"))
+        var(--dark, url("../res/minus_dark.svg"))
+    ;
+}
+
+.single-select .selector {
+	background-color: var(--green-color);
+}
+
+div.mode[data-value=mark] {
+	background-image:
+        var(--light, url("../res/mark.svg"))
+        var(--dark, url("../res/mark_dark.svg"))
+    ;
+}
+
+div.mode[data-value=write] {
+	background-image:
+        var(--light, url("../res/write.svg"))
+        var(--dark, url("../res/write_dark.svg"))
+    ;
+}
+
+.toolbar-item .option {
+	border: medium var(--button-border-color) solid;
+	background-color: var(--button-color);
+}
+
+span.toggle {
+	color: var(--red-color);
+}
+
+span.toggle.on {
+	color: var(--green-color);
+}
+
+/* File import */
+
+div.dropzone {
+	background-color: var(--dropzone-color);
+}
+
+/* Header */
+
+#content {
+	background-color: var(--content-bg-color);
+}
+
+#header span {
+	border: thin var(--main-border-color) solid;
+	color: var(--text-color);
+}
+
+#header span::selection {
+	background-color: var(--selection-color);
+}
+
+/* Grid */
+
+#main-grid, #main-grid .cell {
+	border: calc(var(--cell-size) * 0.05) solid var(--dark-cell-color);
+}
+
+.cell {
+	background-color: var(--blank-cell-color);
+}
+
+.cell.selected-clue {
+	background-color: var(--selected-clue-color);
+}
+
+.cell.selected-clue.selected, .cell.selected-clue.correct.selected {
+	background-color: var(--selected-cell-color);
+}
+
+.cell.black {
+	background-color: var(--dark-cell-color);
+}
+
+/* Clues lists */
+
+.clues-section {
+	border-left: medium var(--main-border-color) solid;
+}
+
+.clues-section h1.header {
+	border-bottom: medium var(--main-border-color) solid;
+}
+
+div.add-item {
+	border-bottom: thin var(--main-border-color) solid;
+}
+
+.clues-list div.clue-entry {
+	border-bottom: thin var(--main-border-color) solid;
+}
+
+.clue-entry:hover {
+	background-color: var(--selected-clue-color);
+}
+
+div.clue-desc::selection {
+	background-color: var(--selection-color);
+}
+
+div.clue-action.moveup {
+	background-image:
+        var(--light, url("../res/uparrow.svg"))
+        var(--dark, url("../res/uparrow_dark.svg"))
+    ;
+}
+
+div.clue-action.movedown {
+	background-image:
+        var(--light, url("../res/downarrow.svg"))
+        var(--dark, url("../res/downarrow_dark.svg"))
+    ;
+}
+
+div.clue-action.delete {
+	background-image:
+        var(--light, url("../res/delete.svg"))
+        var(--dark, url("../res/delete_dark.svg"))
+    ;
+}
+
+/* Auto-suggest */
+
+#auto-suggest #suggest {
+	border-color: var(--main-border-color);
+	background-image: url("../res/disk.svg");
+}
+
+#suggestions div {
+	background: var(--bg-color);
+	border-color: var(--main-border-color);
+}
+
+#suggestions div.close {
+	background-image: url("../res/close.svg");
+}
+
+/* Rentable link */
+
+a#rentable-link .icon {
+    background-image: url("../res/rentable_logo.svg");
+	box-shadow: 0 0 12px var(--rentable-shadow-color);
+}
+
