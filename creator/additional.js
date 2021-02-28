@@ -283,10 +283,9 @@ async function requestAutofill(pattern, maxwords, refresh) {
         // Process words
         let unique = [], parsed = [];
         for (let w of words) {
-            console.log(w);
             w = w["word"].toUpperCase();
-            let p = w.replace(/\W/g, "");
-            if (!parsed.includes(p)) {
+            let p = w.replace(/[^A-Z]/g, "");
+            if (!parsed.includes(p) && p.length == query.length) {
                 unique.push(w);
                 parsed.push(p);
             }
@@ -321,42 +320,11 @@ class SaveLoad {
         // Export/import
         this.exportFormat = {
             "json": JSON.stringify,
-            "exf": function(puzzle) {
-                let data = [puzzle["metadata"], puzzle["dimensions"]];
-                let answerStr = "";
-                for (let i = 0; i < puzzle["dimensions"][1]; i++) {
-                    for (let j = 0; j < puzzle["dimensions"][0]; j++) {
-                        let ans = puzzle["answers"][i][j];
-                        answerStr += (ans === null) ? "0" : (ans || " ");
-                    }
-                }
-                data.push(answerStr);
-                data = [...data, puzzle["clues"]["across"], puzzle["clues"]["down"]];
-                return "*" + btoa(JSON.stringify(data));
-            }
+            "exf": puzzle => "*" + btoa(JSON.stringify(puzzle))
         };
         this.importFormat = {
             "json": JSON.parse,
-            "exf": function(str) {
-                let data = JSON.parse(atob(str.substring(1)));
-                let puzzle = {};
-                puzzle["metadata"] = data[0];
-                puzzle["dimensions"] = data[1];
-                puzzle["answers"] = [];
-                for (let i = 0; i < puzzle["dimensions"][1]; i++) {
-                    let row = [];
-                    for (let j = 0; j < puzzle["dimensions"][0]; j++) {
-                        let ans = data[2][i * puzzle["dimensions"][0] + j];
-                        row.push(ans == "0" ? null : ans == " " ? "" : ans);
-                    }
-                    puzzle["answers"].push(row);
-                }
-                puzzle["clues"] = {
-                    "across": data[3],
-                    "down": data[4]
-                };
-                return puzzle;
-            }
+            "exf": str => JSON.parse(atob(str.substring(1)))
         };
     }
 
@@ -374,11 +342,11 @@ class SaveLoad {
         };
         this.textHandler = function(data, source) {
             if (data) {
-                let fmt = sl.detectFormat(data);
-                if (fmt) {
+                try {
+                    let fmt = sl.detectFormat(data);
                     sl.importObject(sl.importFormat[fmt](data));
                     console.log("Imported data from " + source + ".");
-                } else {
+                } catch (err) {
                     alert("Error: Unrecognized format");
                 }
             } else {
@@ -561,6 +529,6 @@ class SaveLoad {
     detectFormat(data) {
         if (data.startsWith("{")) return "json";
         if (data.startsWith("*")) return "exf";
-        return "";
+        throw Error("Invalid format");
     }
 }
