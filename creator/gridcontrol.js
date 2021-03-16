@@ -533,6 +533,7 @@ class GridController {
         this.actionHistory = [], this.actionFuture = [];
         // UI
         this.mode = "mark";
+        this.lockAspect = true;
         this.symmetry = false;
         this.theme = "light";
     }
@@ -543,15 +544,22 @@ class GridController {
         // Bind UI handlers
         for (let element of document.querySelectorAll("div.increment")) {
             element.addEventListener("click", function(event) {
+                let dim = parseInt(this.getAttribute("data-value"));
                 if (this.getAttribute("data-property") == "width") {
-                    let width = game.grid.width + parseInt(this.getAttribute("data-value"));
-                    if (3 <= width && width <= 32) {
-                        game.takeAction(game.grid.actionResize("width", width));
-                    }
+                    dim += game.grid.width;
                 } else if (this.getAttribute("data-property") == "height") {
-                    let height = game.grid.height + parseInt(this.getAttribute("data-value"));
-                    if (3 <= height && height <= 32) {
-                        game.takeAction(game.grid.actionResize("height", height));
+                    dim += game.grid.height;
+                } else {
+                    throw console.error("Unsupported operation");
+                }
+                if (3 <= dim && dim <= 32) {
+                    if (game.lockAspect) {
+                        let historyLength = game.actionHistory.length;
+                        game.takeAction(game.grid.actionResize("width", dim));
+                        game.takeAction(game.grid.actionResize("height", dim));
+                        game.mergeHistoryAfter(historyLength);
+                    } else {
+                        game.takeAction(game.grid.actionResize(this.getAttribute("data-property"), dim));
                     }
                 }
             });
@@ -589,6 +597,17 @@ class GridController {
             let savedTheme = window.localStorage.getItem("setting-theme");
             if (savedTheme != this.theme) {
                 document.querySelector("div.option[data-action=theme]").click();
+            }
+        }
+        // Lock aspect ratio setting
+        document.querySelector("div[data-action=lock-aspect]").addEventListener("click", function(event) {
+            game.lockAspect = !game.lockAspect;
+            window.localStorage.setItem("setting-lock-aspect", game.lockAspect);
+            this.classList.toggle("on", game.lockAspect);
+        });
+        if (window.localStorage.getItem("setting-lock-aspect") !== null) {
+            if (window.localStorage.getItem("setting-lock-aspect") != "true") {
+                document.querySelector("div[data-action=lock-aspect]").click();
             }
         }
         // Symmetry setting
@@ -694,6 +713,14 @@ class GridController {
         if (actions.length) {
             this.nextAction(actions);
         }
+    }
+
+    mergeHistoryAfter(index) {
+        let actions = [];
+        while (this.actionHistory.length > index) {
+            actions = [...this.actionHistory.pop(), ...actions];
+        }
+        if (actions.length) this.actionHistory.push(actions);
     }
 
     // UI

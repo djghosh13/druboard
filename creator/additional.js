@@ -607,11 +607,7 @@ class SaveLoad {
         }
         gc.takeAction(actions);
         // Combine all taken actions
-        actions = [];
-        while (gc.actionHistory.length > historyLength) {
-            actions = [...gc.actionHistory.pop(), ...actions];
-        }
-        gc.actionHistory.push(actions);
+        gc.mergeHistoryAfter(historyLength);
         // Metadata
         document.querySelector(".head-title").innerText = puzzle["metadata"]["title"] || "";
         document.querySelector(".head-byline").innerText = puzzle["metadata"]["author"] || "";

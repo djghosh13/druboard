@@ -72,6 +72,20 @@ div.increment[data-value="-1"] {
     ;
 }
 
+div.lock-aspect {
+	background-image:
+        var(--light, url("../res/unlock_aspect.svg"))
+        var(--dark, url("../res/unlock_aspect_dark.svg"))
+    ;
+}
+
+div.lock-aspect.on {
+	background-image:
+        var(--light, url("../res/lock_aspect.svg"))
+        var(--dark, url("../res/lock_aspect_dark.svg"))
+    ;
+}
+
 .single-select .selector {
 	background-color: var(--green-color);
 }

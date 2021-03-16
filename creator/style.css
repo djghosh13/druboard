@@ -73,6 +73,14 @@ div.input-value {
 	text-align: center;
 }
 
+div.lock-aspect {
+	width: calc(var(--ui-size) * 3);
+	height: calc(var(--ui-size) * 1.5);
+	border: none;
+	background-size: contain;
+	cursor: pointer;
+}
+
 div.single-select {
 	display: flex;
 	flex-direction: column;
