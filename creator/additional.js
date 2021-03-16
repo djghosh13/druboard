@@ -25,35 +25,76 @@ class ClueController {
             }
         };
         this.moveUpHandler = function(event) {
-            let entry = this.parentNode;
-            if (entry.previousElementSibling != null) {
-                entry.parentNode.insertBefore(entry, entry.previousElementSibling);
-            }
-            cc.refresh();
-            entry.querySelector(".clue-desc").focus();
+            let [dir, index] = cc.indexOf(this.parentNode);
+            cc.controller.takeAction([
+                {
+                    "type": "clue-reorder",
+                    "dir": dir,
+                    "index": index,
+                    "newindex": index - 1
+                }
+            ]);
         };
         this.moveDownHandler = function(event) {
-            let entry = this.parentNode;
-            if (entry.nextElementSibling != null) {
-                entry.parentNode.insertBefore(entry.nextElementSibling, entry);
-            }
-            cc.refresh();
-            entry.querySelector(".clue-desc").focus();
+            let [dir, index] = cc.indexOf(this.parentNode);
+            cc.controller.takeAction([
+                {
+                    "type": "clue-reorder",
+                    "dir": dir,
+                    "index": index,
+                    "newindex": index + 1
+                }
+            ]);
         };
         this.deleteHandler = function(event) {
-            this.parentNode.remove();
-            cc.refresh();
+            let [dir, index] = cc.indexOf(this.parentNode);
+            cc.controller.takeAction([
+                {
+                    "type": "clue-delete",
+                    "dir": dir,
+                    "index": index
+                }
+            ]);
         }
         // Bind handlers
         for (let element of document.querySelectorAll("div.add-item")) {
             element.addEventListener("click", function(event) {
-                let entry = cc.addClue(this.getAttribute("data-value"));
+                cc.controller.takeAction([
+                    {
+                        "type": "clue-create",
+                        "dir": this.getAttribute("data-value")
+                    }
+                ]);
+                // Focus on new clue
+                let entry = this.parentNode.querySelector(".clue-entry:last-of-type");
+                entry.scrollIntoView();
                 entry.querySelector(".clue-desc").focus();
             });
         }
     }
 
     doAction(action, last = false) {
+        if (action["type"] == "clue-create") {
+            let entry = this.createClueEntry();
+            entry.querySelector(".clue-desc").innerText = action["text"] || "";
+            this.element[action["dir"]].appendChild(entry);
+            this.refresh();
+        } else if (action["type"] == "clue-delete") {
+            let entry = this.entryAt(action["dir"], action["index"]);
+            // console.log(entry);
+            action["text"] = entry.querySelector(".clue-desc").innerText;
+            entry.remove();
+            this.refresh();
+        } else if (action["type"] == "clue-reorder") {
+            if (action["newindex"] < 0 || action["newindex"] >= this.numClues(action["dir"])) {
+                return null;
+            }
+            let entry = this.entryAt(action["dir"], action["index"]);
+            entry.remove();
+            let ref = this.entryAt(action["dir"], action["newindex"]);
+            this.element[action["dir"]].insertBefore(entry, ref);
+            this.refresh();
+        }
         switch (action["type"]) {
             case "mark":
             case "resize-width":
@@ -66,6 +107,24 @@ class ClueController {
     }
 
     undoAction(action, last = false) {
+        if (action["type"] == "clue-create") {
+            let entry = this.element[action["dir"]].querySelector(".clue-entry:last-of-type");
+            action["text"] = entry.querySelector(".clue-desc").innerText;
+            entry.remove();
+            this.refresh();
+        } else if (action["type"] == "clue-delete") {
+            let entry = this.createClueEntry();
+            entry.querySelector(".clue-desc").innerText = action["text"] || "";
+            let ref = this.entryAt(action["dir"], action["index"]);
+            this.element[action["dir"]].insertBefore(entry, ref);
+            this.refresh();
+        } else if (action["type"] == "clue-reorder") {
+            let entry = this.entryAt(action["dir"], action["newindex"]);
+            entry.remove();
+            let ref = this.entryAt(action["dir"], action["index"]);
+            this.element[action["dir"]].insertBefore(entry, ref);
+            this.refresh();
+        }
         switch (action["type"]) {
             case "mark":
             case "resize-width":
@@ -93,7 +152,8 @@ class ClueController {
         }
     }
 
-    addClue(dir) {
+    // Utility
+    createClueEntry() {
         let entry = document.createElement("div");
         entry.className = "clue-entry";
         let label = document.createElement("span");
@@ -117,15 +177,26 @@ class ClueController {
         entry.appendChild(moveup);
         entry.appendChild(movedown);
         entry.appendChild(del);
-        this.element[dir].appendChild(entry);
-        entry.scrollIntoView();
-        this.refresh();
         return entry;
     }
 
-    clear() {
-        this.element["across"].innerHTML = "";
-        this.element["down"].innerHTML = "";
+    numClues(dir) {
+        return this.element[dir].querySelectorAll(".clue-entry").length;
+    }
+
+    indexOf(entry) {
+        let dir = this.element["down"].contains(entry) ? "down" : "across";
+        let entryList = this.element[dir].querySelectorAll(".clue-entry");
+        for (let i = 0; i < entryList.length; i++) {
+            if (entryList[i] === entry) {
+                return [dir, i];
+            }
+        }
+        return [dir, -1];
+    }
+
+    entryAt(dir, index) {
+        return this.element[dir].querySelectorAll(".clue-entry")[index] || null;
     }
 }
 
@@ -335,8 +406,8 @@ class SaveLoad {
             let data = sl.exportFormat[this.getAttribute("data-value")](sl.exportObject());
             if (data) {
                 navigator.clipboard.writeText(data).then(
-                    () => alert("Successfully copied to clipboard!"),
-                    () => alert("Error: Failed to copy to clipboard")
+                    () => DNotification.create("Successfully copied to clipboard!", 4000),
+                    () => DNotification.create("Error: Failed to copy to clipboard", 5000)
                 );
             }
         };
@@ -345,21 +416,20 @@ class SaveLoad {
                 try {
                     let fmt = sl.detectFormat(data);
                     sl.importObject(sl.importFormat[fmt](data));
-                    console.log("Imported data from " + source + ".");
+                    DNotification.create("Imported data from " + source + ".", 4000);
                 } catch (err) {
-                    alert("Error: Unrecognized format");
+                    DNotification.create("Error: Unrecognized format", 5000);
                 }
             } else {
-                console.error("No data from " + source + " to import");
+                DNotification.create("No data from " + source + " to import", 5000);
             }
         };
         this.pasteHandler = function(event) {
             let data = (event.clipboardData || window.clipboardData).getData("text");
             sl.textHandler(data, 'clipboard');
-            document.querySelectorAll("div.option[data-action=import]").forEach(
-                x => x.innerText = "Import"
-            );
+            document.querySelector("div.option[data-action=import]").innerText = "Import";
             this.removeEventListener("paste", sl.pasteHandler);
+            sl.importMode = false;
         };
         this.dropHandler = function(event) {
             event.preventDefault();
@@ -500,6 +570,7 @@ class SaveLoad {
 
     importObject(puzzle) {
         let gc = this.gridController, cc = this.clueController;
+        let historyLength = gc.actionHistory.length;
         gc.takeAction(gc.grid.actionResize("width", puzzle["dimensions"][0]));
         gc.takeAction(gc.grid.actionResize("height", puzzle["dimensions"][1]));
         // Answers
@@ -514,12 +585,33 @@ class SaveLoad {
         }
         gc.takeAction(actions);
         // Clues
-        cc.clear();
+        actions = [];
         for (let dir of ["across", "down"]) {
-            for (let clue of puzzle["clues"][dir]) {
-                cc.addClue(dir).querySelector(".clue-desc").innerText = clue;
+            let n = cc.numClues(dir);
+            for (let i = 0; i < n; i++) {
+                actions.unshift({
+                    "type": "clue-delete",
+                    "dir": dir,
+                    "index": 0
+                });
             }
         }
+        for (let dir of ["across", "down"]) {
+            for (let clue of puzzle["clues"][dir]) {
+                actions.unshift({
+                    "type": "clue-create",
+                    "dir": dir,
+                    "text": clue
+                });
+            }
+        }
+        gc.takeAction(actions);
+        // Combine all taken actions
+        actions = [];
+        while (gc.actionHistory.length > historyLength) {
+            actions = [...gc.actionHistory.pop(), ...actions];
+        }
+        gc.actionHistory.push(actions);
         // Metadata
         document.querySelector(".head-title").innerText = puzzle["metadata"]["title"] || "";
         document.querySelector(".head-byline").innerText = puzzle["metadata"]["author"] || "";

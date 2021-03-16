@@ -21,13 +21,6 @@ body {
 	line-height: 1.4;
 }
 
-button { /* Don't use buttons */
-	color: black;
-	background-color: transparent;
-	font-family: "Milliard Medium", Arial, Helvetica, sans-serif;
-	line-height: 1.25;
-}
-
 div.option {
 	line-height: 1.25;
 	padding: 1px;
@@ -403,4 +396,28 @@ a#rentable-link .label-tl {
 a#rentable-link .label-br {
     bottom: 3%;
     right: 4.2%;
+}
+
+/* Notifications */
+
+#notifications {
+	position: fixed;
+	bottom: 0;
+	right: 0;
+	font-size: var(--ui-size);
+	width: 30ch;
+}
+
+#notifications .notification {
+	border: thin solid;
+	padding: calc(var(--ui-size));
+	margin: calc(var(--ui-size) * 0.8);
+	cursor: pointer;
+	/* Animation */
+	transition: transform 0.1s;
+	transform: translateY(0);
+}
+
+#notifications .notification.new-notif {
+	transform: translateY(100%);
 }
