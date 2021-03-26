@@ -215,8 +215,10 @@ class WordSuggestor {
         this.searchIndex = 0;
         // Handlers
         this.searchHandler = null;
+        this.refreshHandler = null;
         this.closeHandler = null;
         this.clickHandler = null;
+        this.prefetchHandler = null;
     }
 
     queryInfo() {
@@ -250,15 +252,15 @@ class WordSuggestor {
                 promise.then(function(result) {
                     // Abort if no longer needed
                     if (ws.promise !== promise) return;
-                    let [wordlist, newindex] = result;
-                    ws.displayResults(wordlist);
+                    let [wordlist, newindex, npages] = result;
                     ws.searchIndex = newindex;
+                    ws.displayResults(wordlist, npages);
                     ws.searching = false;
                 });
             }
         };
         this.refreshHandler = function(event) {
-            if (!ws.searching) {
+            if (!ws.searching && ws.element.querySelectorAll("#suggestions div:not(.close)").length) {
                 ws.element.classList.add("refreshing");
                 ws.closeHandler(null);
                 ws.searching = true;
@@ -270,9 +272,9 @@ class WordSuggestor {
                     ws.element.classList.remove("refreshing");
                     // Abort if no longer needed
                     if (ws.promise !== promise) return;
-                    let [wordlist, newindex] = result;
-                    ws.displayResults(wordlist);
+                    let [wordlist, newindex, npages] = result;
                     ws.searchIndex = newindex;
+                    ws.displayResults(wordlist, npages);
                     ws.searching = false;
                 });
             }
@@ -280,6 +282,7 @@ class WordSuggestor {
         this.closeHandler = function(event) {
             // Start closing results bar
             ws.element.classList.remove("open-bar");
+            ws.element.classList.remove("empty");
             let listElement = ws.element.querySelector("#suggestions");
             listElement.querySelectorAll("div.suggestion-result").forEach(x => x.removeEventListener("click", ws.clickHandler));
             ws.searching = false;
@@ -310,8 +313,15 @@ class WordSuggestor {
             }
             ws.closeHandler(null);
         };
+        this.prefetchHandler = function(event) {
+            let preQuery = ws.queryInfo();
+            if (preQuery !== null) {
+                requestAutofill(preQuery[0], 1, false, 0);
+            }
+        };
         // Bind handlers
         this.element.querySelector("#suggest").addEventListener("click", this.searchHandler);
+        this.element.querySelector("#suggest").addEventListener("mouseover", this.prefetchHandler);
         this.element.querySelector("#suggestions div.close").addEventListener("click", this.closeHandler);
         for (let element of this.element.querySelectorAll(".scroll-button")) {
             element.addEventListener("click", this.refreshHandler);
@@ -342,7 +352,7 @@ class WordSuggestor {
         return action;
     }
 
-    displayResults(wordlist) {
+    displayResults(wordlist, numpages = 100) {
         let listElement = this.element.querySelector("#suggestions");
         let lastElement = this.element.querySelector("div.close");
         listElement.querySelectorAll("div.suggestion-result").forEach(x => x.remove());
@@ -353,6 +363,11 @@ class WordSuggestor {
             result.addEventListener("click", this.clickHandler);
             listElement.insertBefore(result, lastElement);
         }
+        // Scroll buttons
+        this.element.classList.toggle("empty", numpages == 0);
+        this.element.querySelector(".scroll-button[data-value='-1']").classList.toggle("disabled", this.searchIndex == 0);
+        this.element.querySelector(".scroll-button[data-value='1']").classList.toggle("disabled", this.searchIndex == numpages - 1);
+        // Open results bar
         this.element.classList.add("open-bar");
         this.element.querySelector("#suggest").removeEventListener("click", this.searchHandler);
         this.element.querySelector("#suggest").addEventListener("click", this.closeHandler);
@@ -368,7 +383,7 @@ class WordSuggestor {
 // Word suggestion using Datamuse API
 // https://www.datamuse.com/
 
-const maxCacheSize = 100;
+const maxCacheSize = 400;
 autofillCache = new Map();
 
 async function requestAutofill(pattern, maxwords, refresh, pageIdx = 0) {
@@ -404,7 +419,7 @@ async function requestAutofill(pattern, maxwords, refresh, pageIdx = 0) {
     const npages = Math.ceil(words.length / maxwords);
     pageIdx = npages ? (pageIdx + npages) % npages : -1;
     let result = words.slice(pageIdx * maxwords, (pageIdx + 1) * maxwords);
-    return [result, pageIdx];
+    return [result, pageIdx, npages];
 }
 
 

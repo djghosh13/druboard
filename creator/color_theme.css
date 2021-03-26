@@ -144,19 +144,19 @@ div.dropzone {
 	border: calc(var(--cell-size) * 0.05) solid var(--dark-cell-color);
 }
 
-.cell {
+#main-grid .cell {
 	background-color: var(--blank-cell-color);
 }
 
-.cell.selected-clue {
+#main-grid .cell.selected-clue {
 	background-color: var(--selected-clue-color);
 }
 
-.cell.selected-clue.selected, .cell.selected-clue.correct.selected {
+#main-grid .cell.selected-clue.selected, #main-grid .cell.selected-clue.correct.selected {
 	background-color: var(--selected-cell-color);
 }
 
-.cell.black {
+#main-grid .cell.black {
 	background-color: var(--dark-cell-color);
 }
 

@@ -199,7 +199,7 @@ span.head-byline {
 	font-family: Georgia, 'Times New Roman', Times, serif;
 }
 
-.cell {
+#main-grid .cell {
 	position: relative;
 	text-align: center;
 	font-size: calc(var(--cell-size) * 0.5);
@@ -208,11 +208,11 @@ span.head-byline {
 	height: var(--cell-size);
 }
 
-.cell.selected-clue {
+#main-grid .cell.selected-clue {
 	font-weight: bold;
 }
 
-.cell .cell-label {
+#main-grid .cell .cell-label {
 	position: absolute;
 	left: 5%;
 	top: 0;
@@ -371,7 +371,7 @@ div.add-item {
 	transition: transform 0.2s, opacity 0.1s 0.1s;
 }
 
-#auto-suggest.open-bar div.nav, #auto-suggest.refreshing div.nav {
+#auto-suggest.open-bar:not(.empty) div.nav, #auto-suggest.refreshing div.nav {
 	transform: translateY(0) scaleY(1);
 	opacity: 100%;
 	transition: transform 0.2s 0.2s, opacity 0.3s 0.1s;
@@ -383,6 +383,10 @@ div.add-item {
 	height: calc(var(--ui-size) * 3);
 	border-style: solid;
 	cursor: pointer;
+}
+
+#auto-suggest .nav div.scroll-button.disabled {
+	opacity: 40%;
 }
 
 #auto-suggest .nav div.scroll-button[data-value="-1"] {
