@@ -419,6 +419,7 @@ class SaveLoad {
         this.importHandler = null;
         this.pasteHandler = null;
         this.downloadHandler = null;
+        this.autosaveHandler = null;
         // Export/import
         this.exportFormat = {
             "json": JSON.stringify,
@@ -428,6 +429,8 @@ class SaveLoad {
             "json": JSON.parse,
             "exf": str => JSON.parse(atob(str.substring(1)))
         };
+        // Autosave
+        this.lastChanged = -1;
     }
 
     init() {
@@ -442,22 +445,9 @@ class SaveLoad {
                 );
             }
         };
-        this.textHandler = function(data, source) {
-            if (data) {
-                try {
-                    let fmt = sl.detectFormat(data);
-                    sl.importObject(sl.importFormat[fmt](data));
-                    DNotification.create("Imported data from " + source + ".", 4000);
-                } catch (err) {
-                    DNotification.create("Error: Unrecognized format", 5000);
-                }
-            } else {
-                DNotification.create("No data from " + source + " to import", 5000);
-            }
-        };
         this.pasteHandler = function(event) {
             let data = (event.clipboardData || window.clipboardData).getData("text");
-            sl.textHandler(data, 'clipboard');
+            sl.loadData(data, 'clipboard');
             document.querySelector("div.option[data-action=import]").innerText = "Import";
             this.removeEventListener("paste", sl.pasteHandler);
             sl.importMode = false;
@@ -467,7 +457,7 @@ class SaveLoad {
             document.querySelector(".dropzone").classList.remove("active");
             let reader = new FileReader();
             reader.readAsText(event.dataTransfer.files[0]);
-            reader.onloadend = () => sl.textHandler(reader.result, 'file');
+            reader.onloadend = () => sl.loadData(reader.result, 'file');
         }
         this.importHandler = function(event) {
             if (!sl.importMode) {
@@ -492,7 +482,16 @@ class SaveLoad {
                 this.removeAttribute("download");
             }
         }
+        this.autosaveHandler = function(event) {
+            window.localStorage.setItem("save-auto", sl.exportFormat["json"](sl.exportObject()));
+        };
         // Bind handlers
+        document.querySelectorAll("div.option[data-action=new]").forEach(
+            x => x.addEventListener("click", function() {
+                window.localStorage.removeItem("save-auto");
+                sl.loadData(DEFAULT_PUZZLE);
+            })
+        )
         document.querySelectorAll("div.option[data-action=export]").forEach(
             x => x.addEventListener("click", this.exportHandler)
         );
@@ -516,6 +515,22 @@ class SaveLoad {
             event.preventDefault();
             event.stopPropagation();
         });
+        window.addEventListener("beforeunload", this.autosaveHandler);
+        // Load puzzle from local storage
+        if (window.localStorage.getItem("save-auto") !== null) {
+            this.loadData(window.localStorage.getItem("save-auto"));
+        } else {
+            this.loadData(DEFAULT_PUZZLE);
+        }
+        this.gridController.actionHistory.length = 0;
+        this.lastChanged = -1;
+        // Set auto-save
+        window.setInterval(function() {
+            if (sl.lastChanged != -1 && Date.now() - sl.lastChanged > 2000) {
+                sl.lastChanged = -1;
+                sl.autosaveHandler(null);
+            }
+        }, 1000);
     }
 
     doAction(action, last = false) {
@@ -527,6 +542,7 @@ class SaveLoad {
                 if (last) this.refresh();
             default:
         }
+        sl.lastChanged = Date.now();
         return action;
     }
 
@@ -539,6 +555,7 @@ class SaveLoad {
                 if (last) this.refresh();
             default:
         }
+        sl.lastChanged = Date.now();
         return action;
     }
 
@@ -650,4 +667,22 @@ class SaveLoad {
         if (data.startsWith("*")) return "exf";
         throw Error("Invalid format");
     }
+
+    loadData(data, source = null) {
+        if (data) {
+            try {
+                let fmt = sl.detectFormat(data);
+                sl.importObject(sl.importFormat[fmt](data));
+                if (source !== null) {
+                    DNotification.create("Imported data from " + source + ".", 4000);
+                }
+            } catch (err) {
+                DNotification.create("Error: Unrecognized format", 5000);
+            }
+        } else if (source !== null) {
+            DNotification.create("No data from " + source + " to import", 5000);
+        }
+    }
 }
+
+const DEFAULT_PUZZLE = '{"metadata":{"valid":false,"title":"Untitled","author":"Anonymous"},"dimensions":[5,5],"answers":[["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]],"clues":{"across":[],"down":[]}}';

@@ -50,16 +50,17 @@
                 </div>
             </div>
             <div class="toolbar-item">
-                <h1 class="header">Options</h1>
+                <h1 class="header">File</h1>
+                <div class="option" data-action="new">New Puzzle</div>
                 <div class="option" data-action="import"><input type="text" style="display: none" />Import</div>
-                <div class="option" data-action="symmetry">Symmetry<br/><span class="toggle">OFF</span></div>
-                <div class="option" data-action="theme"><span class="toggle-theme">LIGHT</span><br/>Mode</div>
-            </div>
-            <div class="toolbar-item">
-                <h1 class="header">Export</h1>
-                <div class="option" data-action="export" data-value="json">As JSON</div>
                 <div class="option" data-action="export" data-value="exf">Copy to <wbr/> Clipboard</div>
                 <a class="option" data-action="download" data-value="exf" download>Download</a>
+            </div>
+            <div class="toolbar-item">
+                <h1 class="header">Options</h1>
+                <div class="option" data-action="symmetry">Symmetry<br/><span class="toggle">OFF</span></div>
+                <div class="option" data-action="theme"><span class="toggle-theme">LIGHT</span><br/>Mode</div>
+                <div class="option" data-action="export" data-value="json">Copy JSON</div>
             </div>
             <div class="toolbar-item">
                 <a id="rentable-link" href="https://ren-zhou.github.io/rentable/" target="_blank">
@@ -72,8 +73,8 @@
         <div id="content">
             <table id="main-grid"></table>
             <div id="header">
-                <span class="head-title" contenteditable="true">Title</span>
-                <span class="head-byline" contenteditable="true">Author</span>
+                <span class="head-title" contenteditable="true">Untitled</span>
+                <span class="head-byline" contenteditable="true">Anonymous</span>
             </div>
             <div id="auto-suggest">
                 <div id="suggest"></div>

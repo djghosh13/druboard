@@ -664,10 +664,6 @@ class GridController {
         });
         // Initialize additional actors
         additionalActors.forEach(x => x.init());
-        // Initial grid size
-        this.takeAction(this.grid.actionResize("width", 5));
-        this.takeAction(this.grid.actionResize("height", 5));
-        this.actionHistory.length = 0;
     }
 
     nextAction(actions = undefined) {
