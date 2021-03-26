@@ -223,6 +223,25 @@ div.clue-action.delete {
 	background-image: url("../res/close.svg");
 }
 
+#auto-suggest .nav div.scroll-button {
+	border-color: var(--main-border-color);
+    background-color: var(--bg-color);
+}
+
+#auto-suggest .nav div.scroll-button[data-value="-1"] {
+    background-image:
+        var(--light, url("../res/leftarrow.svg"))
+        var(--dark, url("../res/leftarrow_dark.svg"))
+    ;
+}
+
+#auto-suggest .nav div.scroll-button[data-value="1"] {
+    background-image:
+        var(--light, url("../res/rightarrow.svg"))
+        var(--dark, url("../res/rightarrow_dark.svg"))
+    ;
+}
+
 /* Rentable link */
 
 a#rentable-link .icon {

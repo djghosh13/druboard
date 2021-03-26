@@ -212,6 +212,7 @@ class WordSuggestor {
         this.previousQuery = "";
         this.clueidx = 0;
         this.cluedir = "across";
+        this.searchIndex = 0;
         // Handlers
         this.searchHandler = null;
         this.closeHandler = null;
@@ -245,28 +246,38 @@ class WordSuggestor {
                 // Search up word
                 ws.searching = true;
                 let maxwords = Math.floor(48 / Math.max(word.length, 4));
-                let promise = ws.promise = requestAutofill(word, maxwords, refresh);
-                promise.then(function(wordlist) {
+                let promise = ws.promise = requestAutofill(word, maxwords, refresh, 0);
+                promise.then(function(result) {
                     // Abort if no longer needed
                     if (ws.promise !== promise) return;
-                    // Update list
-                    let listElement = ws.element.querySelector("#suggestions");
-                    let lastElement = ws.element.querySelector("div.close");
-                    listElement.querySelectorAll("div.suggestion-result").forEach(x => x.remove());
-                    for (let word of wordlist) {
-                        let result = document.createElement("div");
-                        result.className = "suggestion-result";
-                        result.innerText = word;
-                        result.addEventListener("click", ws.clickHandler);
-                        listElement.insertBefore(result, lastElement);
-                    }
-                    ws.element.classList.add("open-bar");
-                    ws.element.querySelector("#suggest").removeEventListener("click", ws.searchHandler);
-                    ws.element.querySelector("#suggest").addEventListener("click", ws.closeHandler);
+                    let [wordlist, newindex] = result;
+                    ws.displayResults(wordlist);
+                    ws.searchIndex = newindex;
                     ws.searching = false;
                 });
             }
         };
+        this.refreshHandler = function(event) {
+            if (!ws.searching) {
+                let refreshElement = ws.element.querySelector(".nav");
+                refreshElement.classList.add("refreshing");
+                ws.closeHandler(null);
+                ws.searching = true;
+                ws.searchIndex += parseInt(this.getAttribute("data-value"));
+                let word = ws.previousQuery;
+                let maxwords = Math.floor(48 / Math.max(word.length, 4));
+                let promise = ws.promise = requestAutofill(word, maxwords, true, ws.searchIndex);
+                promise.then(function(result) {
+                    refreshElement.classList.remove("refreshing");
+                    // Abort if no longer needed
+                    if (ws.promise !== promise) return;
+                    let [wordlist, newindex] = result;
+                    ws.displayResults(wordlist);
+                    ws.searchIndex = newindex;
+                    ws.searching = false;
+                });
+            }
+        }
         this.closeHandler = function(event) {
             // Start closing results bar
             ws.element.classList.remove("open-bar");
@@ -303,6 +314,9 @@ class WordSuggestor {
         // Bind handlers
         this.element.querySelector("#suggest").addEventListener("click", this.searchHandler);
         this.element.querySelector("#suggestions div.close").addEventListener("click", this.closeHandler);
+        for (let element of this.element.querySelectorAll(".scroll-button")) {
+            element.addEventListener("click", this.refreshHandler);
+        }
     }
 
     doAction(action, last = false) {
@@ -329,6 +343,22 @@ class WordSuggestor {
         return action;
     }
 
+    displayResults(wordlist) {
+        let listElement = this.element.querySelector("#suggestions");
+        let lastElement = this.element.querySelector("div.close");
+        listElement.querySelectorAll("div.suggestion-result").forEach(x => x.remove());
+        for (let word of wordlist) {
+            let result = document.createElement("div");
+            result.className = "suggestion-result";
+            result.innerText = word;
+            result.addEventListener("click", this.clickHandler);
+            listElement.insertBefore(result, lastElement);
+        }
+        this.element.classList.add("open-bar");
+        this.element.querySelector("#suggest").removeEventListener("click", this.searchHandler);
+        this.element.querySelector("#suggest").addEventListener("click", this.closeHandler);
+    }
+
     reset() {
         this.searching = false;
         this.promise = null;
@@ -342,7 +372,7 @@ class WordSuggestor {
 const maxCacheSize = 100;
 autofillCache = new Map();
 
-async function requestAutofill(pattern, maxwords, refresh) {
+async function requestAutofill(pattern, maxwords, refresh, pageIdx = 0) {
     let query = pattern.toLowerCase();
     let words;
     if (autofillCache.has(query)) {
@@ -371,9 +401,11 @@ async function requestAutofill(pattern, maxwords, refresh) {
             }
         }
     }
-    if (refresh) await new Promise(r => setTimeout(r, 200));
-    if (words.length > maxwords) words.length = maxwords;
-    return words;
+    if (refresh) await new Promise(r => setTimeout(r, 150));
+    const npages = Math.ceil(words.length / maxwords);
+    pageIdx = npages ? (pageIdx + npages) % npages : -1;
+    let result = words.slice(pageIdx * maxwords, (pageIdx + 1) * maxwords);
+    return [result, pageIdx];
 }
 
 
