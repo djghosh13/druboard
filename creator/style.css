@@ -309,7 +309,7 @@ div.add-item {
 	transition: transform 0.5s;
 }
 
-#auto-suggest.open-bar #suggest {
+#auto-suggest.open-bar #suggest, #auto-suggest.refreshing #suggest {
 	transform: rotate(0.6turn);
 }
 
@@ -327,7 +327,7 @@ div.add-item {
 	transition: transform 0.3s, opacity 0.2s 0.1s;
 }
 
-#auto-suggest.open-bar #suggestions {
+#auto-suggest.open-bar #suggestions, #auto-suggest.refreshing #suggestions {
 	transform: translateX(0) scaleX(1);
 	opacity: 100%;
 	transition: transform 0.2s 0.1s, opacity 0.3s;
@@ -371,7 +371,7 @@ div.add-item {
 	transition: transform 0.2s, opacity 0.1s 0.1s;
 }
 
-#auto-suggest.open-bar div.nav, #auto-suggest div.nav.refreshing {
+#auto-suggest.open-bar div.nav, #auto-suggest.refreshing div.nav {
 	transform: translateY(0) scaleY(1);
 	opacity: 100%;
 	transition: transform 0.2s 0.2s, opacity 0.3s 0.1s;

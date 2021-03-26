@@ -259,16 +259,15 @@ class WordSuggestor {
         };
         this.refreshHandler = function(event) {
             if (!ws.searching) {
-                let refreshElement = ws.element.querySelector(".nav");
-                refreshElement.classList.add("refreshing");
+                ws.element.classList.add("refreshing");
                 ws.closeHandler(null);
                 ws.searching = true;
                 ws.searchIndex += parseInt(this.getAttribute("data-value"));
                 let word = ws.previousQuery;
                 let maxwords = Math.floor(48 / Math.max(word.length, 4));
-                let promise = ws.promise = requestAutofill(word, maxwords, true, ws.searchIndex);
+                let promise = ws.promise = requestAutofill(word, maxwords, false, ws.searchIndex);
                 promise.then(function(result) {
-                    refreshElement.classList.remove("refreshing");
+                    ws.element.classList.remove("refreshing");
                     // Abort if no longer needed
                     if (ws.promise !== promise) return;
                     let [wordlist, newindex] = result;
