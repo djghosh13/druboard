@@ -581,6 +581,7 @@ class SaveLoad {
     exportObject() {
         let puzzle = {
             "metadata": {
+                "style": "standard",
                 "valid": true,
                 "title": "",
                 "author": ""
@@ -632,6 +633,9 @@ class SaveLoad {
     }
 
     importObject(puzzle) {
+        if (puzzle["metadata"]["style"] == "new-yorker") {
+            throw new Error("New Yorker format");
+        }
         let gc = this.gridController, cc = this.clueController;
         let historyLength = gc.actionHistory.length;
         gc.takeAction(gc.grid.actionResize("width", puzzle["dimensions"][0]));
@@ -700,4 +704,4 @@ class SaveLoad {
     }
 }
 
-const DEFAULT_PUZZLE = '{"metadata":{"valid":false,"title":"Untitled","author":"Anonymous"},"dimensions":[5,5],"answers":[["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]],"clues":{"across":[],"down":[]}}';
+const DEFAULT_PUZZLE = '{"metadata":{"style":"standard","valid":false,"title":"Untitled","author":"Anonymous"},"dimensions":[5,5],"answers":[["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]],"clues":{"across":[],"down":[]}}';

@@ -639,6 +639,11 @@ class GridController {
                 }
                 return;
             }
+            // Escape (deselect)
+            if (event.key == "Escape") {
+                game.selector.selected = false;
+                game.selector.render();
+            }
             // Typing
             if ("ABCDEFGHIJKLMNOPQRSTUVWXYZ".includes(event.key.toUpperCase())) {
                 game.typeCharacter(event.key.toUpperCase());

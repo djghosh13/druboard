@@ -498,12 +498,12 @@ class SaveLoad {
             }
         }
         this.autosaveHandler = function(event) {
-            window.localStorage.setItem("save-auto", sl.exportFormat["json"](sl.exportObject()));
+            window.localStorage.setItem("save-ny-auto", sl.exportFormat["json"](sl.exportObject()));
         };
         // Bind handlers
         document.querySelectorAll("div.option[data-action=new]").forEach(
             x => x.addEventListener("click", function() {
-                window.localStorage.removeItem("save-auto");
+                window.localStorage.removeItem("save-ny-auto");
                 sl.loadData(DEFAULT_PUZZLE);
             })
         )
@@ -532,8 +532,8 @@ class SaveLoad {
         });
         window.addEventListener("beforeunload", this.autosaveHandler);
         // Load puzzle from local storage
-        if (window.localStorage.getItem("save-auto") !== null) {
-            this.loadData(window.localStorage.getItem("save-auto"));
+        if (window.localStorage.getItem("save-ny-auto") !== null) {
+            this.loadData(window.localStorage.getItem("save-ny-auto"));
         } else {
             this.loadData(DEFAULT_PUZZLE);
         }
@@ -581,12 +581,15 @@ class SaveLoad {
     exportObject() {
         let puzzle = {
             "metadata": {
+                "style": "new-yorker",
                 "valid": true,
                 "title": "",
                 "author": ""
             },
             "dimensions": [],
             "answers": [],
+            "border-x": [],
+            "border-y": [],
             "clues": {
                 "across": [],
                 "down": []
@@ -602,20 +605,33 @@ class SaveLoad {
         for (let i = 0; i < gc.grid.height; i++) {
             let row = [];
             for (let j = 0; j < gc.grid.width; j++) {
-                if (gc.grid.isOpen(i, j)) {
-                    let value = gc.grid.state[i][j]["value"];
-                    if (gc.structure.cellToClue[i][j]["across"] === null &&
-                            gc.structure.cellToClue[i][j]["down"] === null)
-                        value = "";
-                    row.push(value);
-                    if (!value) {
-                        puzzle["metadata"]["valid"] = false;
-                    }
-                } else {
-                    row.push(null);
+                let value = gc.grid.state[i][j]["value"];
+                if (gc.structure.cellToClue[i][j]["across"] === null &&
+                        gc.structure.cellToClue[i][j]["down"] === null)
+                    value = "";
+                row.push(value);
+                if (!value) {
+                    puzzle["metadata"]["valid"] = false;
                 }
             }
             puzzle["answers"].push(row);
+        }
+        // Fill in borders
+        for (let i = 0; i < gc.grid.height; i++) {
+            let row = [];
+            for (let j = 0; j < gc.grid.width - 1; j++) {
+                let value = gc.grid.state[i][j]["end-x"];
+                row.push(value ? 1 : 0);
+            }
+            puzzle["border-x"].push(row);
+        }
+        for (let i = 0; i < gc.grid.height - 1; i++) {
+            let row = [];
+            for (let j = 0; j < gc.grid.width; j++) {
+                let value = gc.grid.state[i][j]["end-y"];
+                row.push(value ? 1 : 0);
+            }
+            puzzle["border-y"].push(row);
         }
         // Retrieve clues
         for (let dir of ["across", "down"]) {
@@ -632,6 +648,9 @@ class SaveLoad {
     }
 
     importObject(puzzle) {
+        if (puzzle["metadata"]["style"] != "new-yorker") {
+            throw new Error("Standard format");
+        }
         let gc = this.gridController, cc = this.clueController;
         let historyLength = gc.actionHistory.length;
         gc.takeAction(gc.grid.actionResize("width", puzzle["dimensions"][0]));
@@ -640,10 +659,20 @@ class SaveLoad {
         let actions = [];
         for (let i = 0; i < gc.grid.height; i++) {
             for (let j = 0; j < gc.grid.width; j++) {
-                actions = [...gc.grid.actionToggleCell(i, j, puzzle["answers"][i][j] !== null), ...actions];
                 if (puzzle["answers"][i][j] !== null) {
                     actions = [...gc.grid.actionEditCell(i, j, puzzle["answers"][i][j]), ...actions];
                 }
+            }
+        }
+        // Borders
+        for (let i = 0; i < gc.grid.height; i++) {
+            for (let j = 0; j < gc.grid.width - 1; j++) {
+                actions = [...gc.grid.actionToggleBorder(i, j, "x", puzzle["border-x"][i][j]), ...actions];
+            }
+        }
+        for (let i = 0; i < gc.grid.height - 1; i++) {
+            for (let j = 0; j < gc.grid.width; j++) {
+                actions = [...gc.grid.actionToggleBorder(i, j, "y", puzzle["border-y"][i][j]), ...actions];
             }
         }
         gc.takeAction(actions);
@@ -701,4 +730,4 @@ class SaveLoad {
     }
 }
 
-const DEFAULT_PUZZLE = '{"metadata":{"valid":false,"title":"Untitled","author":"Anonymous"},"dimensions":[5,5],"answers":[["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]],"clues":{"across":[],"down":[]}}';
+const DEFAULT_PUZZLE = '{"metadata":{"style":"new-yorker","valid":false,"title":"Untitled","author":"Anonymous"},"dimensions":[5,5],"answers":[["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]],"border-x":[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]],"border-y":[[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]],"clues":{"across":[],"down":[]}}';

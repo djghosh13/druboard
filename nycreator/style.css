@@ -219,8 +219,8 @@ span.head-byline {
 	background-clip: border-box;
 	border-top-width: 0;
 	border-left-width: 0;
-	border-bottom-width: calc(var(--cell-size) * 0.02);
-	border-right-width: calc(var(--cell-size) * 0.02);
+	border-bottom-width: 0;
+	border-right-width: 0;
 }
 
 #main-grid .cell.end-x {
@@ -234,24 +234,23 @@ span.head-byline {
 #main-grid .cell .border-x, #main-grid .cell .border-y {
 	position: absolute;
 	z-index: 20;
+	cursor: pointer;
 }
 
 #main-grid .cell .border-x {
 	top: 0;
 	left: var(--cell-size);
 	height: var(--cell-size);
-	min-width: 8px;
-	width: calc(var(--cell-size) * 0.1);
-	transform: translateX(-75%);
+	width: calc(var(--cell-size) * 0.07);
+	transform: translateX(-105%);
 }
 
 #main-grid .cell .border-y {
 	top: var(--cell-size);
 	left: 0;
 	width: var(--cell-size);
-	min-height: 8px;
-	height: calc(var(--cell-size) * 0.1);
-	transform: translateY(-75%);
+	height: calc(var(--cell-size) * 0.07);
+	transform: translateY(-105%);
 }
 
 #main-grid .cell.selected-clue {
@@ -260,7 +259,7 @@ span.head-byline {
 
 #main-grid .cell .cell-label {
 	position: absolute;
-	left: 5%;
+	left: calc(var(--cell-size) * 0.05);
 	top: 0;
 	line-height: 0.8em;
 	font-size: calc(var(--cell-size) * 0.35);
