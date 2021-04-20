@@ -194,9 +194,18 @@ span.head-byline {
 /* Grid */
 
 #main-grid, #main-grid .cell {
-	border-collapse: collapse;
+	border-collapse: separate;
+	border-spacing: 0;
+	border-style: solid;
 	margin: 10% auto 0;
 	font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+#main-grid {
+	border-top-width: calc(var(--cell-size) * 0.1);
+	border-left-width: calc(var(--cell-size) * 0.1);
+	border-bottom-width: calc(var(--cell-size) * 0.08);
+	border-right-width: calc(var(--cell-size) * 0.08);
 }
 
 #main-grid .cell {
@@ -206,7 +215,43 @@ span.head-byline {
 	font-weight: normal;
 	width: var(--cell-size);
 	height: var(--cell-size);
-	background-clip: padding-box;
+	box-sizing: border-box;
+	background-clip: border-box;
+	border-top-width: 0;
+	border-left-width: 0;
+	border-bottom-width: calc(var(--cell-size) * 0.02);
+	border-right-width: calc(var(--cell-size) * 0.02);
+}
+
+#main-grid .cell.end-x {
+	border-right-width: calc(var(--cell-size) * 0.08);
+}
+
+#main-grid .cell.end-y {
+	border-bottom-width: calc(var(--cell-size) * 0.08);
+}
+
+#main-grid .cell .border-x, #main-grid .cell .border-y {
+	position: absolute;
+	z-index: 20;
+}
+
+#main-grid .cell .border-x {
+	top: 0;
+	left: var(--cell-size);
+	height: var(--cell-size);
+	min-width: 8px;
+	width: calc(var(--cell-size) * 0.1);
+	transform: translateX(-75%);
+}
+
+#main-grid .cell .border-y {
+	top: var(--cell-size);
+	left: 0;
+	width: var(--cell-size);
+	min-height: 8px;
+	height: calc(var(--cell-size) * 0.1);
+	transform: translateY(-75%);
 }
 
 #main-grid .cell.selected-clue {

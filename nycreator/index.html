@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en-US">
+    <head>
+        <title>DruBoard - Creator</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <meta charset="UTF-8">
+        <link rel="icon" type="image/png" href="../res/favicon.png">
+        <link rel="stylesheet" type="text/css" href="../fonts/milliard/style.css">
+        <link rel="stylesheet" type="text/css" href="style.css">
+        <link rel="stylesheet" type="text/css" href="color_theme.css">
+        <script type="text/javascript" src="notifs.js"></script>
+        <script type="text/javascript" src="gridcontrol.js"></script>
+        <script type="text/javascript" src="additional.js"></script>
+    </head>
+    <body class="color-theme-default">
+        <div class="dropzone">
+            Import from File...
+        </div>
+        <div id="toolbar">
+            <div class="toolbar-item">
+                <h1 class="header">Width</h1>
+                <div class="input-row">
+                    <div class="increment" data-property="width" data-value="-1"></div>
+                    <div class="input-value" data-property="width"></div>
+                    <div class="increment" data-property="width" data-value="1"></div>
+                </div>
+            </div>
+            <div class="input-row">
+                <div class="lock-aspect on" data-action="lock-aspect"></div>
+            </div>
+            <div class="toolbar-item">
+                <h1 class="header">Height</h1>
+                <div class="input-row">
+                    <div class="increment" data-property="height" data-value="-1"></div>
+                    <div class="input-value" data-property="height"></div>
+                    <div class="increment" data-property="height" data-value="1"></div>
+                </div>
+            </div>
+            <div class="toolbar-item">
+                <h1 class="header">Mode</h1>
+                <div class="input-row">
+                    <div class="single-select">
+                        <div class="mode" data-value="mark"></div>
+                        <div class="selector selected"></div>
+                    </div>
+                    <div class="single-select">
+                        <div class="mode" data-value="write"></div>
+                        <div class="selector"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="toolbar-item">
+                <h1 class="header">File</h1>
+                <div class="option" data-action="new">New Puzzle</div>
+                <div class="option" data-action="import"><input type="text" style="display: none" />Import</div>
+                <div class="option" data-action="export" data-value="exf">Copy to <wbr/> Clipboard</div>
+                <a class="option" data-action="download" data-value="exf" download>Download</a>
+            </div>
+            <div class="toolbar-item">
+                <h1 class="header">Options</h1>
+                <div class="option" data-action="symmetry">Symmetry<br/><span class="toggle">OFF</span></div>
+                <div class="option" data-action="theme"><span class="toggle-theme">LIGHT</span><br/>Mode</div>
+                <div class="option" data-action="export" data-value="json">Copy JSON</div>
+            </div>
+            <div class="toolbar-item">
+                <a id="rentable-link" href="https://ren-zhou.github.io/rentable/" target="_blank">
+                    <div class="label-tl">R</div>
+                    <div class="label-br">T</div>
+                    <div class="icon"></div>
+                </a>
+            </div>
+        </div>
+        <div id="content">
+            <table id="main-grid"></table>
+            <div id="header">
+                <span class="head-title" contenteditable="true"></span>
+                <span class="head-byline" contenteditable="true"></span>
+            </div>
+            <div id="auto-suggest">
+                <div id="suggest"></div>
+                <div id="suggestions">
+                    <div class="close"></div>
+                </div>
+                <div class="nav">
+                    <div class="scroll-button" data-value="-1"></div>
+                    <div class="scroll-button" data-value="1"></div>
+                </div>
+            </div>
+        </div>
+        <div class="clues-section">
+            <h1 class="header">Across</h1>
+            <div class="add-item" data-value="across">Add Clue...</div>
+            <div id="clues-across" class="clues-list"></div>
+        </div>
+        <div class="clues-section">
+            <h1 class="header">Down</h1>
+            <div class="add-item" data-value="down">Add Clue...</div>
+            <div id="clues-down" class="clues-list"></div>
+        </div>
+        <div id="notifications"></div>
+        <script type="text/javascript" src="creator.js"></script>
+    </body>
+</html>
