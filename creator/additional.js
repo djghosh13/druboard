@@ -532,9 +532,17 @@ class SaveLoad {
         });
         window.addEventListener("beforeunload", this.autosaveHandler);
         // Load puzzle from local storage
-        if (window.localStorage.getItem("save-auto") !== null) {
-            this.loadData(window.localStorage.getItem("save-auto"));
-        } else {
+        try {
+            if (window.sessionStorage.getItem("save-tmp") !== null) {
+                this.loadData(window.sessionStorage.getItem("save-tmp"), window.sessionStorage.getItem("save-tmp-source"));
+                window.sessionStorage.removeItem("save-tmp");
+                window.sessionStorage.removeItem("save-tmp-source");
+            } else if (window.localStorage.getItem("save-auto") !== null) {
+                this.loadData(window.localStorage.getItem("save-auto"));
+            } else {
+                this.loadData(DEFAULT_PUZZLE);
+            }
+        } catch (err) {
             this.loadData(DEFAULT_PUZZLE);
         }
         this.gridController.actionHistory.length = 0;
@@ -633,9 +641,7 @@ class SaveLoad {
     }
 
     importObject(puzzle) {
-        if (puzzle["metadata"]["style"] == "new-yorker") {
-            throw new Error("New Yorker format");
-        }
+        if (puzzle["metadata"]["style"] == "new-yorker") throw "puzzle-style";
         let gc = this.gridController, cc = this.clueController;
         let historyLength = gc.actionHistory.length;
         gc.takeAction(gc.grid.actionResize("width", puzzle["dimensions"][0]));
@@ -696,6 +702,20 @@ class SaveLoad {
                     DNotification.create("Imported data from " + source + ".", 4000);
                 }
             } catch (err) {
+                if (err === "puzzle-style") {
+                    let notif = DNotification.create(
+                        `This looks like a New Yorker-style puzzle. <br />
+                        <a href='../nycreator/'>Open in NY Creator?</a>`, 10000);
+                    notif.querySelector("a").addEventListener("click", function() {
+                        window.sessionStorage.setItem("save-tmp", data);
+                        if (source !== null) {
+                            window.sessionStorage.setItem("save-tmp-source", source);
+                        } else {
+                            window.sessionStorage.removeItem("save-tmp-source");
+                        }
+                    });
+                    return;
+                }
                 DNotification.create("Error: Unrecognized format", 5000);
             }
         } else if (source !== null) {

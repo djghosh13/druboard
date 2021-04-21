@@ -43,6 +43,7 @@ body {
     --dropzone-color: var(--light, rgba(212, 230, 212, 0.85)) var(--dark, rgb(0, 0, 0, 0.8));
     --rentable-shadow-color: var(--light, rgba(104, 94, 4, 0.5)) var(--dark, rgba(255, 250, 205, 0.2));
     --notif-bg-color: var(--light, rgba(212, 230, 212, 0.95)) var(--dark, rgb(0, 0, 0, 0.9));
+    --link-color: var(--light, #0660b9) var(--dark, #1f8fff);
 }
 
 /* Style */
@@ -254,4 +255,12 @@ a#rentable-link .icon {
 #notifications .notification {
 	border-color: var(--main-border-color);
     background-color: var(--notif-bg-color);
+}
+
+#notifications .notification a {
+    color: var(--link-color);
+}
+
+#notifications .notification a:hover {
+    text-decoration: underline;
 }

@@ -467,7 +467,7 @@ a#rentable-link .label-br {
 	border: thin solid;
 	padding: calc(var(--ui-size));
 	margin: calc(var(--ui-size) * 0.8);
-	cursor: pointer;
+	/* cursor: pointer; */
 	/* Animation */
 	transition: transform 0.1s;
 	transform: translateY(0);

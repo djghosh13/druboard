@@ -202,10 +202,7 @@ span.head-byline {
 }
 
 #main-grid {
-	border-top-width: calc(var(--cell-size) * 0.1);
-	border-left-width: calc(var(--cell-size) * 0.1);
-	border-bottom-width: calc(var(--cell-size) * 0.08);
-	border-right-width: calc(var(--cell-size) * 0.08);
+	border-width: calc(var(--cell-size) * 0.08);
 }
 
 #main-grid .cell {
@@ -234,6 +231,9 @@ span.head-byline {
 #main-grid .cell .border-x, #main-grid .cell .border-y {
 	position: absolute;
 	z-index: 20;
+}
+
+#main-grid.mark-active .cell .border-x, #main-grid.mark-active .cell .border-y {
 	cursor: pointer;
 }
 
@@ -511,7 +511,7 @@ a#rentable-link .label-br {
 	border: thin solid;
 	padding: calc(var(--ui-size));
 	margin: calc(var(--ui-size) * 0.8);
-	cursor: pointer;
+	/* cursor: pointer; */
 	/* Animation */
 	transition: transform 0.1s;
 	transform: translateY(0);

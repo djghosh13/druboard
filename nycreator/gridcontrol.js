@@ -256,7 +256,6 @@ class Grid {
         if (i != this.height - 1) {
             let border = document.createElement("div");
             border.className = "border-y";
-            border.classList.add("active");
             border.setAttribute("data-value", "y");
             border.addEventListener("click", this.borderClickHandler);
             cell.appendChild(border);
@@ -264,7 +263,6 @@ class Grid {
         if (j != this.width - 1) {
             let border = document.createElement("div");
             border.className = "border-x";
-            border.classList.add("active");
             border.setAttribute("data-value", "x");
             border.addEventListener("click", this.borderClickHandler);
             cell.appendChild(border);
@@ -565,6 +563,7 @@ class GridController {
         this.actors = [this.grid, this.structure, this.selector];
         this.actionHistory = [], this.actionFuture = [];
         // UI
+        this.mode = "mark";
         this.lockAspect = true;
         this.symmetry = false;
         this.theme = "light";
@@ -595,6 +594,25 @@ class GridController {
                     }
                 }
             });
+        }
+        // Edit mode setting
+        for (let element of document.querySelectorAll("div.mode")) {
+            element.addEventListener("click", function(event) {
+                game.mode = this.getAttribute("data-value");
+                window.localStorage.setItem("setting-mode", game.mode);
+                for (let elem of document.querySelectorAll("div.mode")) {
+                    elem.nextElementSibling.classList.remove("selected");
+                }
+                this.nextElementSibling.classList.add("selected");
+                // Special for NY crosswords
+                document.querySelectorAll("#main-grid").forEach(function(elem) {
+                    elem.classList.toggle("mark-active", game.mode == "mark");
+                });
+            });
+        }
+        if (window.localStorage.getItem("setting-mode") !== null) {
+            let savedMode = window.localStorage.getItem("setting-mode");
+            document.querySelector("div.mode[data-value=" + savedMode + "]").click();
         }
         // Theme setting
         document.querySelector("div.option[data-action=theme]").addEventListener("click", function(event) {
@@ -748,23 +766,27 @@ class GridController {
     }
 
     actionClickCell(i, j) {
-        this.selector.selectCell(i, j);
+        if (this.mode == "write") {
+            this.selector.selectCell(i, j);
+        }
     }
 
     actionMarkBorder(i, j, axis) {
-        this.selector.selected = false;
-        if (this.symmetry) {
-            let [si, sj] = (axis == "x")
-                ? [this.grid.height - i - 1, this.grid.width - j - 2]
-                : [this.grid.height - i - 2, this.grid.width - j - 1];
-            let value = (axis == "x") ? this.grid.isEndX(i, j) : this.grid.isEndY(i, j);
-            let actions = [
-                ...this.grid.actionToggleBorder(i, j, axis, !value),
-                ...this.grid.actionToggleBorder(si, sj, axis, !value)
-            ];
-            this.takeAction(actions);
-        } else {
-            this.takeAction(this.grid.actionToggleBorder(i, j, axis));
+        if (this.mode == "mark") {
+            this.selector.selected = false;
+            if (this.symmetry) {
+                let [si, sj] = (axis == "x")
+                    ? [this.grid.height - i - 1, this.grid.width - j - 2]
+                    : [this.grid.height - i - 2, this.grid.width - j - 1];
+                let value = (axis == "x") ? this.grid.isEndX(i, j) : this.grid.isEndY(i, j);
+                let actions = [
+                    ...this.grid.actionToggleBorder(i, j, axis, !value),
+                    ...this.grid.actionToggleBorder(si, sj, axis, !value)
+                ];
+                this.takeAction(actions);
+            } else {
+                this.takeAction(this.grid.actionToggleBorder(i, j, axis));
+            }
         }
     }
 

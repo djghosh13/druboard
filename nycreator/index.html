@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en-US">
     <head>
-        <title>DruBoard - Creator (NY)</title>
+        <title>DruBoard - Creator</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         <meta charset="UTF-8">
         <link rel="icon" type="image/png" href="../res/favicon.png">
@@ -37,6 +37,19 @@
                 </div>
             </div>
             <div class="toolbar-item">
+                <h1 class="header">Mode</h1>
+                <div class="input-row">
+                    <div class="single-select">
+                        <div class="mode" data-value="mark"></div>
+                        <div class="selector selected"></div>
+                    </div>
+                    <div class="single-select">
+                        <div class="mode" data-value="write"></div>
+                        <div class="selector"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="toolbar-item">
                 <h1 class="header">File</h1>
                 <div class="option" data-action="new">New Puzzle</div>
                 <div class="option" data-action="import"><input type="text" style="display: none" />Import</div>
@@ -48,6 +61,7 @@
                 <div class="option" data-action="symmetry">Symmetry<br/><span class="toggle">OFF</span></div>
                 <div class="option" data-action="theme"><span class="toggle-theme">LIGHT</span><br/>Mode</div>
                 <div class="option" data-action="export" data-value="json">Copy JSON</div>
+                <a class="option internal-link" href="../creator/">Standard Creator</a>
             </div>
             <div class="toolbar-item">
                 <a id="rentable-link" href="https://ren-zhou.github.io/rentable/" target="_blank">
@@ -58,7 +72,7 @@
             </div>
         </div>
         <div id="content">
-            <table id="main-grid"></table>
+            <table id="main-grid" class="mark-active"></table>
             <div id="header">
                 <span class="head-title" contenteditable="true"></span>
                 <span class="head-byline" contenteditable="true"></span>
