@@ -21,9 +21,10 @@ class Grid {
             let i = parseInt(selection[1]);
             let j = parseInt(selection[2]);
             let axis = this.getAttribute("data-value");
-            grid.controller.actionMarkBorder(i, j, axis);
+            if (grid.controller.actionMarkBorder(i, j, axis)) {
+                event.stopPropagation();
+            }
             event.preventDefault();
-            event.stopPropagation();
         };
     }
 
@@ -766,7 +767,7 @@ class GridController {
     }
 
     actionClickCell(i, j) {
-        if (this.mode == "write") {
+        if (this.mode == "write" || this.mode == "mark") {
             this.selector.selectCell(i, j);
         }
     }
@@ -787,7 +788,9 @@ class GridController {
             } else {
                 this.takeAction(this.grid.actionToggleBorder(i, j, axis));
             }
+            return true;
         }
+        return false;
     }
 
     typeCharacter(char, del = false) {
