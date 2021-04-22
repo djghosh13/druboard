@@ -12,7 +12,8 @@ class Grid {
             let selection = this.id.match(/cell-(\d+)-(\d+)/);
             let i = parseInt(selection[1]);
             let j = parseInt(selection[2]);
-            grid.controller.actionClickCell(i, j);
+            let mode = (event.which == 3) ? "mark" : "write";
+            grid.controller.actionClickCell(i, j, mode);
             event.preventDefault();
         };
     }
@@ -214,6 +215,8 @@ class Grid {
                     cell.classList.add("black");
                 }
                 cell.addEventListener("click", this.clickHandler);
+                cell.addEventListener("auxclick", this.clickHandler);
+                cell.addEventListener("contextmenu", event => event.preventDefault());
                 row.appendChild(cell);
             }
             this.element.appendChild(row);
@@ -532,7 +535,6 @@ class GridController {
         this.actors = [this.grid, this.structure, this.selector];
         this.actionHistory = [], this.actionFuture = [];
         // UI
-        this.mode = "mark";
         this.lockAspect = true;
         this.symmetry = false;
         this.theme = "light";
@@ -563,21 +565,6 @@ class GridController {
                     }
                 }
             });
-        }
-        // Edit mode setting
-        for (let element of document.querySelectorAll("div.mode")) {
-            element.addEventListener("click", function(event) {
-                game.mode = this.getAttribute("data-value");
-                window.localStorage.setItem("setting-mode", game.mode);
-                for (let elem of document.querySelectorAll("div.mode")) {
-                    elem.nextElementSibling.classList.remove("selected");
-                }
-                this.nextElementSibling.classList.add("selected");
-            });
-        }
-        if (window.localStorage.getItem("setting-mode") !== null) {
-            let savedMode = window.localStorage.getItem("setting-mode");
-            document.querySelector("div.mode[data-value=" + savedMode + "]").click();
         }
         // Theme setting
         document.querySelector("div.option[data-action=theme]").addEventListener("click", function(event) {
@@ -730,8 +717,8 @@ class GridController {
         document.querySelector("div.input-value[data-property=height]").innerText = this.grid.height;
     }
 
-    actionClickCell(i, j) {
-        if (this.mode == "mark") {
+    actionClickCell(i, j, mode = "write") {
+        if (mode == "mark") {
             this.selector.selected = false;
             if (this.symmetry) {
                 let newstate = !this.grid.isOpen(i, j);
@@ -743,7 +730,7 @@ class GridController {
             } else {
                 this.takeAction(this.grid.actionToggleCell(i, j));
             }
-        } else if (this.mode == "write") {
+        } else if (mode == "write") {
             this.selector.selectCell(i, j);
         }
     }
