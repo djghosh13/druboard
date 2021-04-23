@@ -508,6 +508,9 @@ a#rentable-link .label-br {
 		flex-direction: column;
 		--cell-size: calc(min(calc(7.5in / max(8, var(--grid-width))), calc(8.5in / var(--grid-height))) - 2px);
 		font-family: Georgia, 'Times New Roman', Times, serif;
+		
+		--light: var(--ON) !important;
+		--dark: var(--OFF) !important;
 	}
 
 	#toolbar, #auto-suggest, .clues-section .add-item, .clue-entry .clue-action,
