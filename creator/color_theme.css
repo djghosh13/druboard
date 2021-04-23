@@ -131,7 +131,7 @@ div.dropzone {
 }
 
 #header span {
-	border: thin var(--main-border-color) solid;
+	border-color: var(--main-border-color);
 	color: var(--text-color);
 }
 
@@ -142,7 +142,7 @@ div.dropzone {
 /* Grid */
 
 #main-grid, #main-grid .cell {
-	border: calc(var(--cell-size) * 0.05) solid var(--dark-cell-color);
+	border-color: var(--dark-cell-color);
 }
 
 #main-grid .cell {
@@ -164,19 +164,19 @@ div.dropzone {
 /* Clues lists */
 
 .clues-section {
-	border-left: medium var(--main-border-color) solid;
+	border-left-color: var(--main-border-color);
 }
 
 .clues-section h1.header {
-	border-bottom: medium var(--main-border-color) solid;
+	border-bottom-color: var(--main-border-color);
 }
 
 div.add-item {
-	border-bottom: thin var(--main-border-color) solid;
+	border-bottom-color: var(--main-border-color);
 }
 
 .clues-list div.clue-entry {
-	border-bottom: thin var(--main-border-color) solid;
+	border-bottom-color: var(--main-border-color);
 }
 
 .clue-entry:hover {

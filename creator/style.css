@@ -1,6 +1,8 @@
 :root{
 	--cell-size: 80px;
 	--ui-size: 20px;
+	--grid-width: 5;
+	--grid-height: 5;
 }
 
 ::selection {
@@ -19,6 +21,7 @@ body {
 	display: flex;
 	font-family: "Milliard Medium", Arial, Helvetica, sans-serif;
 	line-height: 1.4;
+	overflow: hidden;
 }
 
 div.option {
@@ -181,6 +184,8 @@ div.dropzone.active {
 	padding: 2px 4px;
 	cursor: text;
 	font-family: Georgia, 'Times New Roman', Times, serif;
+	border-width: thin;
+	border-style: solid;
 }
 
 span.head-title {
@@ -191,12 +196,18 @@ span.head-byline {
 	font-size: calc(var(--ui-size));
 }
 
+#watermark {
+	display: none;
+}
+
 /* Grid */
 
 #main-grid, #main-grid .cell {
 	border-collapse: collapse;
 	margin: 10% auto 0;
 	font-family: Georgia, 'Times New Roman', Times, serif;
+	border-width: calc(var(--cell-size) * 0.05);
+	border-style: solid;
 }
 
 #main-grid .cell {
@@ -229,21 +240,27 @@ span.head-byline {
 	flex-direction: column;
 	font-size: var(--ui-size);
 	flex: 1 1 15%;
+	border-left-width: medium;
+	border-left-style: solid;
 }
 
 .clues-section h1.header {
 	margin: 0;
 	padding: 8px 0;
 	flex: 0 0;
+	border-bottom-width: medium;
+	border-bottom-style: solid;
 }
 
 div.add-item {
-	border: none;
-	border-radius: 0;
 	cursor: pointer;
 	font-size: calc(var(--ui-size) * 1.3);
 	flex: 0 0;
 	text-align: center;
+	border: none;
+	border-radius: 0;
+	border-bottom-width: thin;
+	border-bottom-style: solid;
 }
 
 .clues-section .clues-list {
@@ -260,6 +277,8 @@ div.add-item {
 	display: flex;
 	align-items: center;
 	padding: 4px 2px;
+	border-bottom-width: thin;
+	border-bottom-style: solid;
 }
 
 .clue-entry span.clue-label {
@@ -475,4 +494,67 @@ a#rentable-link .label-br {
 
 #notifications .notification.new-notif {
 	transform: translateY(100%);
+}
+
+/* Printer friendly */
+
+@media print {
+	@page {
+		size: 8.5in 11in;
+	}
+
+	body {
+		display: block;
+		flex-direction: column;
+		--cell-size: calc(min(calc(7.5in / max(8, var(--grid-width))), calc(8.5in / var(--grid-height))) - 2px);
+	}
+
+	#toolbar, #auto-suggest, .clues-section .add-item, .clue-entry .clue-action,
+	#notifications, .dropzone {
+		display: none;
+	}
+
+	#content {
+		background-color: transparent !important;
+	}
+
+	.clues-section {
+		page-break-before: always;
+	}
+
+	#content #header {
+		position: initial;
+		height: unset;
+		margin-bottom: 4px;
+	}
+
+	#content #header span {
+		border-width: 0;
+		padding: 0;
+	}
+
+	#main-grid {
+		margin: 0 auto;
+	}
+
+	#main-grid .cell {
+		border-width: min(4px, max(2px, calc(var(--cell-size) * 0.05)));
+	}
+	
+	#main-grid .cell:not(.black) {
+		background-color: transparent !important;
+	}
+
+	#main-grid .cell span:not(.cell-label) {
+		color: transparent;
+	}
+
+	.clues-section, .clues-list div.clue-entry {
+		border-width: 0;
+	}
+
+	#watermark {
+		display: block;
+		float: right;
+	}
 }

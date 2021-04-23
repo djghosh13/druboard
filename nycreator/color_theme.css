@@ -134,7 +134,7 @@ div.dropzone {
 }
 
 #header span {
-	border: thin var(--main-border-color) solid;
+	border-color: var(--main-border-color);
 	color: var(--text-color);
 }
 
@@ -177,19 +177,19 @@ div.dropzone {
 /* Clues lists */
 
 .clues-section {
-	border-left: medium var(--main-border-color) solid;
+	border-left-color: var(--main-border-color);
 }
 
 .clues-section h1.header {
-	border-bottom: medium var(--main-border-color) solid;
+	border-bottom-color: var(--main-border-color);
 }
 
 div.add-item {
-	border-bottom: thin var(--main-border-color) solid;
+	border-bottom-color: var(--main-border-color);
 }
 
 .clues-list div.clue-entry {
-	border-bottom: thin var(--main-border-color) solid;
+	border-bottom-color: var(--main-border-color);
 }
 
 .clue-entry:hover {
