@@ -549,6 +549,7 @@ a#rentable-link .label-br {
 		display: block;
 		flex-direction: column;
 		--cell-size: calc(min(calc(7.5in / max(8, var(--grid-width))), calc(8.5in / var(--grid-height))) - 2px);
+		font-family: Georgia, 'Times New Roman', Times, serif;
 	}
 
 	#toolbar, #auto-suggest, .clues-section .add-item, .clue-entry .clue-action,
@@ -578,10 +579,6 @@ a#rentable-link .label-br {
 	#main-grid {
 		margin: 0 auto;
 	}
-
-	/* #main-grid .cell {
-		border-width: min(4px, max(2px, calc(var(--cell-size) * 0.05)));
-	} */
 	
 	#main-grid .cell {
 		background-color: transparent !important;
@@ -601,6 +598,15 @@ a#rentable-link .label-br {
 
 	.clues-section, .clues-list div.clue-entry {
 		border-width: 0;
+	}
+
+	.clue-entry {
+		background-color: transparent !important;
+	}
+
+	.clue-entry span.clue-label {
+		font-weight: normal;
+		font-size: calc(var(--ui-size) * 1.1);
 	}
 
 	#watermark {
