@@ -570,6 +570,27 @@ class GridController {
                 }
             });
         }
+        // Edit mode setting
+        for (let element of document.querySelectorAll("div.mode")) {
+            element.addEventListener("click", function(event) {
+                game.mode = this.getAttribute("data-value");
+                window.localStorage.setItem("setting-mode", game.mode);
+                for (let elem of document.querySelectorAll("div.mode")) {
+                    elem.nextElementSibling.classList.remove("selected");
+                }
+                this.nextElementSibling.classList.add("selected");
+                // Special for NY crosswords
+                document.querySelectorAll("#main-grid").forEach(function(elem) {
+                    elem.classList.toggle("mark-active", game.mode == "mark");
+                });
+            });
+        }
+        if (window.localStorage.getItem("setting-mode") !== null) {
+            let savedMode = window.localStorage.getItem("setting-mode");
+            document.querySelectorAll("div.mode[data-value=" + savedMode + "]").forEach(
+                element => element.click()
+            );
+        }
         // Theme setting
         document.querySelector("div.option[data-action=theme]").addEventListener("click", function(event) {
             game.theme = game.theme == "light" ? "dark" : "light";

@@ -204,10 +204,11 @@ span.head-byline {
 
 #main-grid, #main-grid .cell {
 	border-collapse: collapse;
+	border-width: calc(var(--cell-size) * 0.05);
+	border-spacing: 0;
+	border-style: solid;
 	margin: 10% auto 0;
 	font-family: Georgia, 'Times New Roman', Times, serif;
-	border-width: calc(var(--cell-size) * 0.05);
-	border-style: solid;
 }
 
 #main-grid .cell {
@@ -226,11 +227,63 @@ span.head-byline {
 
 #main-grid .cell .cell-label {
 	position: absolute;
-	left: 5%;
+	left: calc(var(--cell-size) * 0.05);
 	top: 0;
 	line-height: 0.8em;
 	font-size: calc(var(--cell-size) * 0.35);
 	font-weight: normal;
+}
+
+/* NY Creator */
+
+#main-grid.ny, #main-grid.ny .cell {
+	border-collapse: separate;
+}
+
+#main-grid.ny {
+	border-width: calc(var(--cell-size) * 0.08);
+}
+
+#main-grid.ny .cell {
+	box-sizing: border-box;
+	background-clip: border-box;
+	border-top-width: 0;
+	border-left-width: 0;
+	border-bottom-width: 0;
+	border-right-width: 0;
+}
+
+#main-grid.ny .cell.end-x {
+	border-right-width: calc(var(--cell-size) * 0.08);
+}
+
+#main-grid.ny .cell.end-y {
+	border-bottom-width: calc(var(--cell-size) * 0.08);
+}
+
+#main-grid.ny .cell .border-x, #main-grid.ny .cell .border-y {
+	position: absolute;
+	z-index: 20;
+}
+
+#main-grid.ny.mark-active .cell .border-x, #main-grid.ny.mark-active .cell .border-y {
+	cursor: pointer;
+}
+
+#main-grid.ny .cell .border-x {
+	top: 0;
+	left: var(--cell-size);
+	height: var(--cell-size);
+	width: calc(var(--cell-size) * 0.07);
+	transform: translateX(-105%);
+}
+
+#main-grid.ny .cell .border-y {
+	top: var(--cell-size);
+	left: 0;
+	width: var(--cell-size);
+	height: calc(var(--cell-size) * 0.07);
+	transform: translateY(-105%);
 }
 
 /* Clues lists */
@@ -541,12 +594,20 @@ a#rentable-link .label-br {
 		margin: 0 auto;
 	}
 
-	#main-grid .cell {
+	#main-grid:not(.ny) .cell {
 		border-width: min(4px, max(2px, calc(var(--cell-size) * 0.05)));
 	}
 	
 	#main-grid .cell:not(.black) {
 		background-color: transparent !important;
+	}
+
+	#main-grid.ny :nth-child(even) .cell:nth-child(odd), #main-grid.ny :nth-child(odd) .cell:nth-child(even) {
+		background-color: rgba(0, 0, 0, 0.08) !important;
+	}
+
+	#main-grid.ny .cell .border-x, #main-grid.ny .cell .border-y {
+		display: none;
 	}
 
 	#main-grid .cell span:not(.cell-label) {

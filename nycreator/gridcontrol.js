@@ -617,7 +617,9 @@ class GridController {
         }
         if (window.localStorage.getItem("setting-mode") !== null) {
             let savedMode = window.localStorage.getItem("setting-mode");
-            document.querySelector("div.mode[data-value=" + savedMode + "]").click();
+            document.querySelectorAll("div.mode[data-value=" + savedMode + "]").forEach(
+                element => element.click()
+            );
         }
         // Theme setting
         document.querySelector("div.option[data-action=theme]").addEventListener("click", function(event) {

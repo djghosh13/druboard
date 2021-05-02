@@ -44,6 +44,10 @@ body {
     --rentable-shadow-color: var(--light, rgba(104, 94, 4, 0.5)) var(--dark, rgba(255, 250, 205, 0.2));
     --notif-bg-color: var(--light, rgba(212, 230, 212, 0.95)) var(--dark, rgb(0, 0, 0, 0.9));
     --link-color: var(--light, #0660b9) var(--dark, #1f8fff);
+    /* NY Creator colors */
+    --other-cell-color: var(--light, lightgray) var(--dark, #38404c);
+    --selected-other-clue-color: var(--light, #8fbef1) var(--dark, #743451);
+    --border-select-color: var(--light, rgba(0, 0, 0, 0.4)) var(--dark, rgb(0, 0, 0, 0.4));
 }
 
 /* Style */
@@ -153,12 +157,32 @@ div.dropzone {
 	background-color: var(--selected-clue-color);
 }
 
-#main-grid .cell.selected-clue.selected, #main-grid .cell.selected-clue.correct.selected {
+#main-grid .cell.selected-clue.selected {
 	background-color: var(--selected-cell-color);
 }
 
 #main-grid .cell.black {
 	background-color: var(--dark-cell-color);
+}
+
+/* NY Creator */
+
+#main-grid.ny :nth-child(even) .cell:nth-child(odd), #main-grid.ny :nth-child(odd) .cell:nth-child(even) {
+	background-color: var(--other-cell-color);
+}
+
+#main-grid.ny.mark-active .cell .border-x:hover, #main-grid.ny.mark-active .cell .border-y:hover {
+	background-color: var(--border-select-color);
+    box-shadow: 0 0 4px 4px var(--selected-cell-color), 0 0 6px 5px var(--blank-cell-color);
+}
+
+#main-grid.ny :nth-child(even) .cell.selected-clue:nth-child(odd),
+#main-grid.ny :nth-child(odd) .cell.selected-clue:nth-child(even) {
+    background-color: var(--selected-other-clue-color);
+}
+
+#main-grid.ny .cell.selected-clue.selected.selected {
+	background-color: var(--selected-cell-color);
 }
 
 /* Clues lists */
