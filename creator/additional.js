@@ -446,6 +446,11 @@ class SaveLoad {
         };
         // Autosave
         this.lastChanged = -1;
+        // Puzzle specific
+        this.puzzleStyle = "standard";
+        this.storageTag = "save-auto";
+        this.styleMessage = `This looks like a New Yorker-style puzzle. <br />
+                             <a href='../nycreator/'>Open in NY Creator?</a>`;
     }
 
     init() {
@@ -498,12 +503,12 @@ class SaveLoad {
             }
         }
         this.autosaveHandler = function(event) {
-            window.localStorage.setItem("save-auto", sl.exportFormat["json"](sl.exportObject()));
+            window.localStorage.setItem(sl.storageTag, sl.exportFormat["json"](sl.exportObject()));
         };
         // Bind handlers
         document.querySelectorAll("div.option[data-action=new]").forEach(
             x => x.addEventListener("click", function() {
-                window.localStorage.removeItem("save-auto");
+                window.localStorage.removeItem(sl.storageTag);
                 sl.loadData(DEFAULT_PUZZLE);
             })
         )
@@ -537,8 +542,8 @@ class SaveLoad {
                 this.loadData(window.sessionStorage.getItem("save-tmp"), window.sessionStorage.getItem("save-tmp-source"));
                 window.sessionStorage.removeItem("save-tmp");
                 window.sessionStorage.removeItem("save-tmp-source");
-            } else if (window.localStorage.getItem("save-auto") !== null) {
-                this.loadData(window.localStorage.getItem("save-auto"));
+            } else if (window.localStorage.getItem(this.storageTag) !== null) {
+                this.loadData(window.localStorage.getItem(this.storageTag));
             } else {
                 this.loadData(DEFAULT_PUZZLE);
             }
@@ -641,7 +646,7 @@ class SaveLoad {
     }
 
     importObject(puzzle) {
-        if (puzzle["metadata"]["style"] == "new-yorker") throw "puzzle-style";
+        if ((puzzle["metadata"]["style"] || "standard") != this.puzzleStyle) throw "puzzle-style";
         let gc = this.gridController, cc = this.clueController;
         let historyLength = gc.actionHistory.length;
         gc.takeAction(gc.grid.actionResize("width", puzzle["dimensions"][0]));
@@ -703,9 +708,7 @@ class SaveLoad {
                 }
             } catch (err) {
                 if (err === "puzzle-style") {
-                    let notif = DNotification.create(
-                        `This looks like a New Yorker-style puzzle. <br />
-                        <a href='../nycreator/'>Open in NY Creator?</a>`, 10000);
+                    let notif = DNotification.create(this.styleMessage, 10000);
                     notif.querySelector("a").addEventListener("click", function() {
                         window.sessionStorage.setItem("save-tmp", data);
                         if (source !== null) {
@@ -717,6 +720,7 @@ class SaveLoad {
                     return;
                 }
                 DNotification.create("Error: Unrecognized format", 5000);
+                console.error(err);
             }
         } else if (source !== null) {
             DNotification.create("No data from " + source + " to import", 5000);
@@ -724,4 +728,4 @@ class SaveLoad {
     }
 }
 
-const DEFAULT_PUZZLE = '{"metadata":{"style":"standard","valid":false,"title":"Untitled","author":"Anonymous"},"dimensions":[5,5],"answers":[["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]],"clues":{"across":[],"down":[]}}';
+var DEFAULT_PUZZLE = '{"metadata":{"style":"standard","valid":false,"title":"Untitled","author":"Anonymous"},"dimensions":[5,5],"answers":[["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]],"clues":{"across":[],"down":[]}}';

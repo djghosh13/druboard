@@ -234,58 +234,6 @@ span.head-byline {
 	font-weight: normal;
 }
 
-/* NY Creator */
-
-#main-grid.ny, #main-grid.ny .cell {
-	border-collapse: separate;
-}
-
-#main-grid.ny {
-	border-width: calc(var(--cell-size) * 0.08);
-}
-
-#main-grid.ny .cell {
-	box-sizing: border-box;
-	background-clip: border-box;
-	border-top-width: 0;
-	border-left-width: 0;
-	border-bottom-width: 0;
-	border-right-width: 0;
-}
-
-#main-grid.ny .cell.end-x {
-	border-right-width: calc(var(--cell-size) * 0.08);
-}
-
-#main-grid.ny .cell.end-y {
-	border-bottom-width: calc(var(--cell-size) * 0.08);
-}
-
-#main-grid.ny .cell .border-x, #main-grid.ny .cell .border-y {
-	position: absolute;
-	z-index: 20;
-}
-
-#main-grid.ny.mark-active .cell .border-x, #main-grid.ny.mark-active .cell .border-y {
-	cursor: pointer;
-}
-
-#main-grid.ny .cell .border-x {
-	top: 0;
-	left: var(--cell-size);
-	height: var(--cell-size);
-	width: calc(var(--cell-size) * 0.07);
-	transform: translateX(-105%);
-}
-
-#main-grid.ny .cell .border-y {
-	top: var(--cell-size);
-	left: 0;
-	width: var(--cell-size);
-	height: calc(var(--cell-size) * 0.07);
-	transform: translateY(-105%);
-}
-
 /* Clues lists */
 
 .clues-section {
