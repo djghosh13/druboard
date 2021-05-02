@@ -442,7 +442,8 @@ class SaveLoad {
         };
         this.importFormat = {
             "json": JSON.parse,
-            "exf": str => JSON.parse(atob(str.substring(1)))
+            "exf": str => JSON.parse(atob(str.substring(1))),
+            "rxf": str => JSON.parse(atob(str.substring(1)))['boardData']
         };
         // Autosave
         this.lastChanged = -1;
@@ -695,6 +696,7 @@ class SaveLoad {
     detectFormat(data) {
         if (data.startsWith("{")) return "json";
         if (data.startsWith("*")) return "exf";
+        if (data.startsWith("~")) return "rxf";
         throw Error("Invalid format");
     }
 
