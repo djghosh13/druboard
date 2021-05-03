@@ -1,0 +1,143 @@
+body {
+    font-size: var(--ui-size);
+
+    --minor-text-color: var(--light, #464646) var(--dark, #c0c0c0);
+}
+
+/* Nav bar */
+
+#navbar {
+    flex: 0 0 14%;
+    border-right: medium solid var(--main-border-color);
+    max-width: 300px;
+    font-size: 1.2em;
+    padding: 2px 2px;
+}
+
+#navbar .new-puzzle {
+    width: 6em;
+    max-width: 95%;
+    height: 2.2em;
+    margin: 0.5em auto;
+    padding: 0.3em 0;
+    text-align: center;
+    border: medium solid var(--main-border-color);
+    border-radius: 2em;
+	background-color: var(--button-color);
+    font-size: 1.3em;
+    line-height: 1em;
+    cursor: pointer;
+}
+
+#navbar .new-puzzle .style {
+    font-size: 0.75em;
+    color: var(--minor-text-color);
+}
+
+#navbar .new-puzzle:hover {
+    box-shadow: var(--selected-cell-color) 0 0 8px 4px;
+}
+
+/* File list */
+
+#files {
+    display: flex;
+    flex-direction: column;
+    flex: 1 0 40%;
+    padding: 1em 0.4em;
+    height: 100%;
+	background-color: var(--content-bg-color);
+    overflow-y: scroll;
+	scrollbar-width: 0;
+}
+
+#files::-webkit-scrollbar {
+	display: none;
+}
+
+#files .file-entry {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    border: medium solid var(--main-border-color);
+    border-radius: 0.5em;
+    margin: 0.65em 1em;
+    padding: 0.8em 0.2em;
+    max-width: min(40em, 80%);
+    height: fit-content;
+    cursor: pointer;
+}
+
+#files .file-entry.no-file {
+    cursor: default;
+}
+
+#files .file-entry .col1 {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 50%;
+    padding-left: 1.2em;
+}
+#files .file-entry .col2 {
+    display: flex;
+    flex: 0.5 0.5 15%;
+    flex-direction: column;
+    text-align: right;
+    padding-right: 1.2em;
+    margin-right: 0.3em;
+    border-right: thin solid var(--main-border-color);
+}
+
+#files .file-entry .icon {
+    flex: 0 0 auto;
+    width: 2.8em;
+    height: 2.8em;
+    background-size: contain;
+    background-repeat: no-repeat;
+    margin: 0.2em 0.3em;
+}
+
+#files .file-entry .icon.download {
+    background-image:
+        var(--light, url("../res/download.svg"))
+        var(--dark, url("../res/download_dark.svg"))
+    ;
+}
+#files .file-entry .icon.delete {
+    background-image: url(../res/trash.svg);
+}
+
+#files .file-entry .title {
+    font-size: 1.3em;
+}
+
+#files .file-entry .author {
+    color: var(--minor-text-color);
+}
+
+#files .file-entry .size {
+    font-size: 1.3em;
+}
+
+#files .file-entry .style {
+    color: var(--minor-text-color);
+    text-transform: capitalize;
+}
+
+/* DruBoard logo */
+
+#navbar #druboard-logo {
+    width: 4em;
+    height: 4em;
+    margin: 0.8em auto;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-image: url(../res/druboard_logo.svg);
+    /* Animation */
+    transform: rotate(0) scale(1);
+    transition: transform 0.2s;
+}
+
+#navbar #druboard-logo:hover {
+    transform: rotate(20deg) scale(0.95);
+}

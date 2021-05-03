@@ -3,7 +3,6 @@ class NYSaveLoad extends SaveLoad {
     constructor(gridController, clueController) {
         super(gridController, clueController);
         this.puzzleStyle = "new-yorker";
-        this.storageTag = "save-ny-auto";
         this.styleMessage = `This looks like a standard puzzle. <br />
                              <a href='../creator/'>Open in Creator?</a>`;
     }
@@ -133,6 +132,45 @@ class NYSaveLoad extends SaveLoad {
         document.querySelector(".head-byline").innerText = puzzle["metadata"]["author"] || "";
         this.refresh();
     }
+
+    static validateObject(puzzle) {
+        if (puzzle["metadata"]
+            && ["valid", "title", "author"].every(key => key in puzzle["metadata"])
+            && puzzle["dimensions"]
+            && puzzle["dimensions"].length == 2
+            && puzzle["dimensions"].every(dim => dim == Math.floor(dim) && 3 <= dim && dim <= 24)
+            && puzzle["answers"]
+            && puzzle["answers"].length == puzzle["dimensions"][1]
+            && puzzle["answers"].every(
+                row => row.length == puzzle["dimensions"][0]
+                && row.every(chr => chr === "" || chr.match(/^[A-Z]$/))
+            )
+            && puzzle["clues"]
+            && ["across", "down"].every(
+                key => key in puzzle["clues"]
+                && puzzle["clues"][key].length !== undefined
+                && puzzle["clues"][key].every(c => typeof(c) == "string")
+            )
+            && puzzle["border-x"]
+            && puzzle["border-x"].length == puzzle["dimensions"][1]
+            && puzzle["border-x"].every(
+                row => row.length == puzzle["dimensions"][0] - 1
+                && row.every(b => b === 0 || b === 1)
+            )
+            && puzzle["border-y"]
+            && puzzle["border-y"].length == puzzle["dimensions"][1] - 1
+            && puzzle["border-y"].every(
+                row => row.length == puzzle["dimensions"][0]
+                && row.every(b => b === 0 || b === 1)
+            )) {
+            // Is a valid puzzle, check if new or old version
+            if (puzzle["metadata"]["uid"] && typeof(puzzle["metadata"]["uid"]) == "string") {
+                return "valid";
+            }
+            return "incomplete";
+        }
+        return false;
+    }
 }
 
-var DEFAULT_PUZZLE = '{"metadata":{"style":"new-yorker","valid":false,"title":"Untitled","author":"Anonymous"},"dimensions":[5,5],"answers":[["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]],"border-x":[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]],"border-y":[[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]],"clues":{"across":[],"down":[]}}';
+DEFAULT_PUZZLE.set("new-yorker", '{"metadata":{"style":"new-yorker","valid":false,"title":"Untitled","author":"Anonymous"},"dimensions":[5,5],"answers":[["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]],"border-x":[[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]],"border-y":[[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]],"clues":{"across":[],"down":[]}}');

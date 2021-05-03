@@ -81,7 +81,6 @@ class ClueController {
             this.refresh();
         } else if (action["type"] == "clue-delete") {
             let entry = this.entryAt(action["dir"], action["index"]);
-            // console.log(entry);
             action["text"] = entry.querySelector(".clue-desc").innerText;
             entry.remove();
             this.refresh();
@@ -160,8 +159,9 @@ class ClueController {
         label.className = "clue-label";
         entry.appendChild(label);
         let clue = document.createElement("div");
-        clue.setAttribute("contentEditable", "true");
         clue.className = "clue-desc";
+        clue.setAttribute("contentEditable", "true");
+        clue.setAttribute("spellcheck", "true");
         clue.innerText = "";
         clue.addEventListener("focus", this.focusHandler);
         entry.appendChild(clue);
@@ -435,21 +435,11 @@ class SaveLoad {
         this.pasteHandler = null;
         this.downloadHandler = null;
         this.autosaveHandler = null;
-        // Export/import
-        this.exportFormat = {
-            "json": JSON.stringify,
-            "exf": puzzle => "*" + btoa(JSON.stringify(puzzle))
-        };
-        this.importFormat = {
-            "json": JSON.parse,
-            "exf": str => JSON.parse(atob(str.substring(1))),
-            "rxf": str => JSON.parse(atob(str.substring(1)))['boardData']
-        };
         // Autosave
         this.lastChanged = -1;
         // Puzzle specific
+        this.file = null;
         this.puzzleStyle = "standard";
-        this.storageTag = "save-auto";
         this.styleMessage = `This looks like a New Yorker-style puzzle. <br />
                              <a href='../nycreator/'>Open in NY Creator?</a>`;
     }
@@ -458,7 +448,8 @@ class SaveLoad {
         let sl = this;
         // Handlers
         this.exportHandler = function(event) {
-            let data = sl.exportFormat[this.getAttribute("data-value")](sl.exportObject());
+            sl.file.update(sl.exportObject());
+            let data = DFile.export(sl.file.puzzle, this.getAttribute("data-value"));
             if (data) {
                 navigator.clipboard.writeText(data).then(
                     () => DNotification.create("Successfully copied to clipboard!", 4000),
@@ -492,9 +483,10 @@ class SaveLoad {
         };
         this.downloadHandler = function(event) {
             // Update download link(s)
-            let puzzle = sl.exportObject();
+            sl.file.update(sl.exportObject());
+            let puzzle = sl.file.puzzle;
             let filename = puzzle["metadata"]["title"].replace(/\W/g, "") || "puzzle";
-            let data = sl.exportFormat[this.getAttribute("data-value")](puzzle);
+            let data = DFile.export(puzzle, this.getAttribute("data-value"));
             if (data) {
                 this.setAttribute("href", "data:;base64," + btoa(data));
                 this.setAttribute("download", filename + "." + this.getAttribute("data-value"));
@@ -504,13 +496,15 @@ class SaveLoad {
             }
         }
         this.autosaveHandler = function(event) {
-            window.localStorage.setItem(sl.storageTag, sl.exportFormat["json"](sl.exportObject()));
+            let modifyDate = (sl.lastChanged != -1) ? sl.lastChanged : null;
+            sl.file.update(sl.exportObject(), modifyDate);
+            sl.file.save();
         };
         // Bind handlers
         document.querySelectorAll("div.option[data-action=new]").forEach(
             x => x.addEventListener("click", function() {
-                window.localStorage.removeItem(sl.storageTag);
-                sl.loadData(DEFAULT_PUZZLE);
+                // TODO: Open new file in new tab
+                DNotification.create("New puzzle creation from Creator temporarily disabled");
             })
         )
         document.querySelectorAll("div.option[data-action=export]").forEach(
@@ -537,27 +531,22 @@ class SaveLoad {
             event.stopPropagation();
         });
         window.addEventListener("beforeunload", this.autosaveHandler);
-        // Load puzzle from local storage
-        try {
-            if (window.sessionStorage.getItem("save-tmp") !== null) {
-                this.loadData(window.sessionStorage.getItem("save-tmp"), window.sessionStorage.getItem("save-tmp-source"));
-                window.sessionStorage.removeItem("save-tmp");
-                window.sessionStorage.removeItem("save-tmp-source");
-            } else if (window.localStorage.getItem(this.storageTag) !== null) {
-                this.loadData(window.localStorage.getItem(this.storageTag));
-            } else {
-                this.loadData(DEFAULT_PUZZLE);
-            }
-        } catch (err) {
-            this.loadData(DEFAULT_PUZZLE);
+        // Load puzzle
+        if (window.sessionStorage.getItem("current-puzzle") == null) {
+            window.location.replace(`../home/${INDEX_HTML}`);
+        } else {
+            this.file = DFile.loadFile(window.sessionStorage.getItem("current-puzzle"));
+            this.file.update(this.file.puzzle);
         }
+        this.importObject(this.file.puzzle);
+
         this.gridController.actionHistory.length = 0;
         this.lastChanged = -1;
         // Set auto-save
         window.setInterval(function() {
             if (sl.lastChanged != -1 && Date.now() - sl.lastChanged > 2000) {
-                sl.lastChanged = -1;
                 sl.autosaveHandler(null);
+                sl.lastChanged = -1;
             }
         }, 1000);
     }
@@ -693,32 +682,56 @@ class SaveLoad {
         this.refresh();
     }
 
-    detectFormat(data) {
-        if (data.startsWith("{")) return "json";
-        if (data.startsWith("*")) return "exf";
-        if (data.startsWith("~")) return "rxf";
-        throw Error("Invalid format");
+    static validateObject(puzzle) {
+        if (puzzle["metadata"]
+            && ["valid", "title", "author"].every(key => key in puzzle["metadata"])
+            && puzzle["dimensions"]
+            && puzzle["dimensions"].length == 2
+            && puzzle["dimensions"].every(dim => dim == Math.floor(dim) && 3 <= dim && dim <= 32)
+            && puzzle["answers"]
+            && puzzle["answers"].length == puzzle["dimensions"][1]
+            && puzzle["answers"].every(
+                row => row.length == puzzle["dimensions"][0]
+                && row.every(chr => chr === null || chr === "" || chr.match(/^[A-Z]$/))
+            )
+            && puzzle["clues"]
+            && ["across", "down"].every(
+                key => key in puzzle["clues"]
+                && puzzle["clues"][key].length !== undefined
+                && puzzle["clues"][key].every(c => typeof(c) == "string")
+            )) {
+            // Is a valid puzzle, check if new or old version
+            if (puzzle["metadata"]["uid"] && typeof(puzzle["metadata"]["uid"]) == "string") {
+                return "valid";
+            }
+            console.log(puzzle);
+            return "incomplete";
+        }
+        return false;
     }
 
     loadData(data, source = null) {
         if (data) {
             try {
-                let fmt = sl.detectFormat(data);
-                sl.importObject(sl.importFormat[fmt](data));
+                let puzzle = DFile.import(data, DFile.detectFormat(data));
+                if ((puzzle["metadata"]["style"] || "standard") != this.puzzleStyle) throw "puzzle-style";
+                if (!this.constructor.validateObject(puzzle)) throw new Error("Unrecognized format");
+                this.importObject(puzzle);
+                this.file.update(puzzle);
                 if (source !== null) {
                     DNotification.create("Imported data from " + source + ".", 4000);
                 }
             } catch (err) {
                 if (err === "puzzle-style") {
-                    let notif = DNotification.create(this.styleMessage, 10000);
-                    notif.querySelector("a").addEventListener("click", function() {
-                        window.sessionStorage.setItem("save-tmp", data);
-                        if (source !== null) {
-                            window.sessionStorage.setItem("save-tmp-source", source);
-                        } else {
-                            window.sessionStorage.removeItem("save-tmp-source");
-                        }
-                    });
+                    let notif = DNotification.create("This appears to be a different style of puzzle", 6000);
+                    // notif.querySelector("a").addEventListener("click", function() {
+                    //     window.sessionStorage.setItem("save-tmp", data);
+                    //     if (source !== null) {
+                    //         window.sessionStorage.setItem("save-tmp-source", source);
+                    //     } else {
+                    //         window.sessionStorage.removeItem("save-tmp-source");
+                    //     }
+                    // });
                     return;
                 }
                 DNotification.create("Error: Unrecognized format", 5000);
@@ -730,4 +743,5 @@ class SaveLoad {
     }
 }
 
-var DEFAULT_PUZZLE = '{"metadata":{"style":"standard","valid":false,"title":"Untitled","author":"Anonymous"},"dimensions":[5,5],"answers":[["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]],"clues":{"across":[],"down":[]}}';
+const DEFAULT_PUZZLE = new Map();
+DEFAULT_PUZZLE.set("standard", '{"metadata":{"style":"standard","valid":false,"title":"Untitled","author":"Anonymous"},"dimensions":[5,5],"answers":[["","","","",""],["","","","",""],["","","","",""],["","","","",""],["","","","",""]],"clues":{"across":[],"down":[]}}');
