@@ -204,7 +204,7 @@ span.head-byline {
 
 #main-grid, #main-grid .cell {
 	border-collapse: collapse;
-	border-width: calc(var(--cell-size) * 0.05);
+	border-width: max(calc(var(--cell-size) * 0.05), 2px);
 	border-spacing: 0;
 	border-style: solid;
 	margin: 10% auto 0;
@@ -579,4 +579,22 @@ a#rentable-link .label-br {
 		display: block;
 		float: right;
 	}
+}
+
+/* For embedded previews */
+
+html.embed #toolbar, html.embed .clues-section, html.embed #content #header, html.embed #auto-suggest, html.embed #notifications {
+    display: none;
+}
+
+html.embed body, html.embed #content {
+	background-color: transparent;
+}
+
+html.embed #content #main-grid {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+    margin: 0;
+	transform: translate(-50%, -50%);
 }

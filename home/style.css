@@ -2,6 +2,9 @@ body {
     font-size: var(--ui-size);
 
     --minor-text-color: var(--light, #464646) var(--dark, #c0c0c0);
+    --bg-gradient-start: var(--light, rgba(0, 0, 0, 1.0)) var(--dark, rgb(239, 239, 239, 0.8));
+    --bg-gradient-middle: var(--light, rgba(0, 0, 0, 0.5)) var(--dark, rgb(239, 239, 239, 0.4));
+    --bg-gradient-end: var(--light, rgba(0, 0, 0, 0)) var(--dark, rgba(239, 239, 239, 0));
 }
 
 /* Nav bar */
@@ -11,7 +14,8 @@ body {
     border-right: medium solid var(--main-border-color);
     max-width: 300px;
     font-size: 1.2em;
-    padding: 2px 2px;
+    padding: 2px 0.8em;
+    box-sizing: border-box;
 }
 
 #navbar .new-puzzle {
@@ -63,9 +67,13 @@ body {
     border-radius: 0.5em;
     margin: 0.65em 1em;
     padding: 0.8em 0.2em;
-    max-width: min(40em, 80%);
+    max-width: min(40em, 95%);
     height: fit-content;
     cursor: pointer;
+}
+
+#files .file-entry.selected {
+    box-shadow: var(--selected-cell-color) 0 0 6px 5px;
 }
 
 #files .file-entry.no-file {
@@ -80,7 +88,7 @@ body {
 }
 #files .file-entry .col2 {
     display: flex;
-    flex: 0.5 0.5 15%;
+    flex: 0.1 0.5 15%;
     flex-direction: column;
     text-align: right;
     padding-right: 1.2em;
@@ -97,6 +105,12 @@ body {
     margin: 0.2em 0.3em;
 }
 
+#files .file-entry .icon.open {
+    background-image:
+        var(--light, url("../res/openfile.svg"))
+        var(--dark, url("../res/openfile_dark.svg"))
+    ;
+}
 #files .file-entry .icon.download {
     background-image:
         var(--light, url("../res/download.svg"))
@@ -121,6 +135,73 @@ body {
 
 #files .file-entry .style {
     color: var(--minor-text-color);
+    text-transform: capitalize;
+}
+
+/* File preview */
+
+#file-info {
+    display: none;
+    flex-direction: column;
+    flex: 1 1 30%;
+    padding: 0.5em;
+    border-left: medium solid var(--main-border-color);
+}
+
+#file-info.active {
+    display: flex;
+}
+
+#file-info .preview {
+    position: relative;
+    width: 100%;
+    height: 60%;
+    background-image: radial-gradient(circle closest-side,
+        var(--bg-gradient-start) 0%,
+        var(--bg-gradient-middle) 30%,
+        var(--bg-gradient-end) 100%
+    );
+}
+
+#file-info .preview iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+#file-info .preview::after {
+    position: absolute;
+    content: "";
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+#file-info .info table {
+    min-width: 90%;
+    margin: 0 auto;
+    margin-top: 0.4em;
+}
+
+#file-info .info table td {
+    padding: 0.25em 0;
+}
+
+#file-info .info .title {
+    font-size: 1.3em;
+    text-align: center;
+}
+
+#file-info .info .label {
+    color: var(--minor-text-color);
+}
+
+#file-info .info .value {
+    text-align: right;
+}
+#file-info .info .value[data-value=style] {
     text-transform: capitalize;
 }
 

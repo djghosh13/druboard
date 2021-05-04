@@ -195,8 +195,8 @@ class NYGrid extends Grid{
     // Visuals
     render() {
         // Set styles
-        let cellWidth = window.innerWidth * 0.55 / this.width * 0.85;
-        let cellHeight = window.innerHeight / this.height * 0.9 * 0.85;
+        let cellWidth = this.element.parentNode.offsetWidth / this.width * 0.85;
+        let cellHeight = this.element.parentNode.offsetHeight / this.height * 0.9 * 0.85;
         let cellPx = Math.max(Math.min(cellWidth, cellHeight, 120), 16);
         document.documentElement.style.setProperty("--cell-size", Math.floor(cellPx) + "px");
         document.documentElement.style.setProperty("--grid-width", this.width + "");

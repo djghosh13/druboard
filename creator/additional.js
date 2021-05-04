@@ -496,9 +496,11 @@ class SaveLoad {
             }
         }
         this.autosaveHandler = function(event) {
-            let modifyDate = (sl.lastChanged != -1) ? sl.lastChanged : null;
-            sl.file.update(sl.exportObject(), modifyDate);
-            sl.file.save();
+            if (!IS_EMBED) {
+                let modifyDate = (sl.lastChanged != -1) ? sl.lastChanged : null;
+                sl.file.update(sl.exportObject(), modifyDate);
+                sl.file.save();
+            }
         };
         // Bind handlers
         document.querySelectorAll("div.option[data-action=new]").forEach(
@@ -530,6 +532,7 @@ class SaveLoad {
             event.preventDefault();
             event.stopPropagation();
         });
+        window.addEventListener("blur", this.autosaveHandler);
         window.addEventListener("beforeunload", this.autosaveHandler);
         // Load puzzle
         if (window.sessionStorage.getItem("current-puzzle") == null) {

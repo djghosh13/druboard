@@ -6,6 +6,7 @@ class DDrive {
         //
         this.theme = "light";
         this.lastDropTarget = null;
+        this.selectedID = null;
     }
 
     init() {
@@ -47,7 +48,16 @@ class DDrive {
             this.refresh();
             this.render();
         });
-        //
+        // Selection
+        document.addEventListener("click", function(event) {
+            if (document.querySelector("#file-info").contains(event.target)) return;
+            drive.selectedID = null;
+            drive.element.querySelectorAll(".file-entry").forEach(element => {
+                element.classList.remove("selected");
+            });
+            document.querySelector("#file-info").classList.remove("active");
+        })
+        // File upload
         window.addEventListener("dragenter", function(event) {
             drive.lastDropTarget = event.target;
             document.querySelector(".dropzone").classList.add("active");
@@ -122,6 +132,9 @@ class DDrive {
             let metadata = this.fileList[id];
             let link = document.createElement("div");
             link.classList.add("file-entry");
+            if (metadata["uid"] == this.selectedID) {
+                link.classList.add("selected");
+            }
             link.innerHTML = `
                 <div class="col1">
                     <span class="title">${metadata["title"]}</span>
@@ -131,11 +144,25 @@ class DDrive {
                     <span class="size">${metadata["dimensions"][0]}×${metadata["dimensions"][1]}</span>
                     <span class="style">${metadata["style"].replace(/\W+/g, " ")}</span>
                 </div>
+                <div class="icon open" title="Open in New Tab"></div>
                 <a class="icon download" data-value="exf" title="Download" download></a>
                 <div class="icon delete" title="Delete"></div>
             `;
-            link.addEventListener("click", function() {
+            link.addEventListener("click", function(event) {
+                drive.selectedID = metadata["uid"];
+                drive.element.querySelectorAll(".file-entry").forEach(element => {
+                    element.classList.remove("selected");
+                });
+                this.classList.add("selected");
+                window.setTimeout(() => drive.displayInfo(metadata["uid"]), 80);
+                event.stopPropagation();
+            });
+            link.addEventListener("dblclick", function() {
                 window.open(window.location.href.replace(/\?.*/, "") + `?uid=${metadata["uid"]}&style=${metadata["style"]}`);
+            });
+            link.querySelector(".open").addEventListener("click", function(event) {
+                window.open(window.location.href.replace(/\?.*/, "") + `?uid=${metadata["uid"]}&style=${metadata["style"]}`);
+                event.stopPropagation();
             });
             link.querySelector(".download").addEventListener("click", function(event) {
                 // Update download link
@@ -160,6 +187,22 @@ class DDrive {
             });
             this.element.appendChild(link); 
         }
+    }
+
+    displayInfo(id) {
+        let metadata = this.fileList[id];
+        let infoTable = document.querySelector("#file-info .info table");
+        infoTable.querySelector(".title[data-value=title]").innerText = metadata["title"];
+        infoTable.querySelector(".value[data-value=author]").innerText = metadata["author"];
+        infoTable.querySelector(".value[data-value=dimensions]").innerText = `${metadata["dimensions"][0]}×${metadata["dimensions"][1]}`;
+        infoTable.querySelector(".value[data-value=style]").innerText = metadata["style"];
+        infoTable.querySelector(".value[data-value=modify_date]").innerText = new Date(metadata["modify_date"]).toLocaleString();
+        infoTable.querySelector(".value[data-value=create_date]").innerText = new Date(metadata["create_date"]).toLocaleString();
+        // Set iframe source
+        document.querySelector("#file-info .preview iframe").setAttribute("src",
+            `index.html?uid=${metadata["uid"]}&style=${metadata["style"]}&embed=true`
+        );
+        document.querySelector("#file-info").classList.add("active");
     }
 
     deleteFile(id) {
