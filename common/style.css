@@ -216,6 +216,7 @@ span.head-byline {
 	text-align: center;
 	font-size: calc(var(--cell-size) * 0.5);
 	font-weight: normal;
+	min-width: var(--cell-size);
 	width: var(--cell-size);
 	height: var(--cell-size);
 	background-clip: padding-box;

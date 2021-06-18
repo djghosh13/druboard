@@ -735,10 +735,12 @@ class SaveLoad {
                     //         window.sessionStorage.removeItem("save-tmp-source");
                     //     }
                     // });
-                    return;
+                } else if (err === "puz-import") {
+                    DNotification.create("Published PUZ format cannot be re-imported into creator", 6000);
+                } else {
+                    DNotification.create("Error: Unrecognized format", 5000);
+                    console.error(err);
                 }
-                DNotification.create("Error: Unrecognized format", 5000);
-                console.error(err);
             }
         } else if (source !== null) {
             DNotification.create("No data from " + source + " to import", 5000);

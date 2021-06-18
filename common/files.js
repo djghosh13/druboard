@@ -129,6 +129,8 @@ class DFile {
                 return JSON.parse(atob(string.substring(1)));
             case "rxf":
                 return JSON.parse(atob(string.substring(1)))["boardData"];
+            case "puz":
+                throw "puz-import";
             default:
                 throw new Error("Invalid format");
         }
@@ -138,6 +140,7 @@ class DFile {
         if (string.startsWith("{")) return "json";
         if (string.startsWith("*")) return "exf";
         if (string.startsWith("~")) return "rxf";
+        if (string.substr(2, 11) == "ACROSS&DOWN") return "puz";
         throw new Error("Invalid format");
     }
 }
