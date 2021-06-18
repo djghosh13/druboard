@@ -80,6 +80,42 @@ class DFile {
                 return JSON.stringify(puzzle);
             case "exf":
                 return "*" + btoa(JSON.stringify(puzzle));
+            case "puz":
+                // Rename metadata and add copyright
+                puzzle["meta"] = puzzle["metadata"];
+                puzzle["meta"]["copyright"] = "Made in DruBoard";
+                // Rename answers grid
+                puzzle["grid"] = puzzle["answers"].map(
+                    row => row.map(value => value === null ? "." : value)
+                );
+                // Reformat clues - lazy way
+                {
+                    let structure = new GridStructure({
+                        "width": puzzle["dimensions"][0],
+                        "height": puzzle["dimensions"][1],
+                        "isOpen": (i, j) => puzzle["answers"][i][j] !== null
+                    });
+                    structure.refresh();
+                    let clues = {
+                        "across": [],
+                        "down": []
+                    };
+                    let idxs = {
+                        "across": 0,
+                        "down": 0
+                    };
+                    for (let dir of ["across", "down"]) {
+                        for (let idx = 0; idx < structure.clueToCell.length; idx++) {
+                            if (structure.clueToCell[idx][dir].length) {
+                                clues[dir].push(puzzle["clues"][dir][idxs[dir]++]);
+                            } else {
+                                clues[dir].push(undefined);
+                            }
+                        }
+                    }
+                    puzzle["clues"] = clues;
+                }
+                return Puz.encode(puzzle).reduce((a, x) => a + String.fromCharCode(x), "");
             default:
                 throw new Error("Invalid format");
         }
