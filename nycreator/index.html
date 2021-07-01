@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en-US">
-    <script>"document.designMode = 'on'"</script>
     <head>
         <title>DruBoard - Creator</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
@@ -80,8 +79,8 @@
         </div>
         <div id="content">
             <div id="header">
-                <span class="head-title" contenteditable="true" onclick="document.execCommand('selectAll', false, null)"></span>
-                <span class="head-byline" contenteditable="true" onclick="document.execCommand('selectAll', false, null)"></span>
+                <span class="head-title" contenteditable="true" ondblclick="document.execCommand('selectAll', false, null)"></span>
+                <span class="head-byline" contenteditable="true" ondblclick="document.execCommand('selectAll', false, null)"></span>
             </div>
             <table id="main-grid" class="ny mark-active"></table>
             <div id="auto-suggest">
