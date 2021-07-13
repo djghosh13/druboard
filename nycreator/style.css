@@ -19,10 +19,12 @@
 
 #main-grid.ny .cell.end-x {
 	border-right-width: calc(var(--cell-size) * 0.08);
+	padding-left: calc(var(--cell-size) * 0.08);
 }
 
 #main-grid.ny .cell.end-y {
 	border-bottom-width: calc(var(--cell-size) * 0.08);
+	padding-top: calc(var(--cell-size) * 0.08);
 }
 
 #main-grid.ny .cell .border-x, #main-grid.ny .cell .border-y {
