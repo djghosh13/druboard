@@ -7,6 +7,8 @@ class DDrive {
         this.theme = "light";
         this.lastDropTarget = null;
         this.selectedID = null;
+        this.lastDeleted = null;
+        this.openedCreators = {};
     }
 
     init() {
@@ -38,7 +40,7 @@ class DDrive {
                 let style = element.getAttribute("data-value");
                 let file = DFile.createNew(DEFAULT_PUZZLE.get(style));
                 file.save();
-                window.open(window.location.href.replace(/\?.*/, "") + `?uid=${file.id}&style=${style}`);
+                drive.openedCreators[file.id] = window.open(window.location.href.replace(/\?.*/, "") + `?uid=${file.id}&style=${style}`);
             });
         }
         this.refresh();
@@ -51,11 +53,7 @@ class DDrive {
         // Selection
         document.addEventListener("click", function(event) {
             if (document.querySelector("#file-info").contains(event.target)) return;
-            drive.selectedID = null;
-            drive.element.querySelectorAll(".file-entry").forEach(element => {
-                element.classList.remove("selected");
-            });
-            document.querySelector("#file-info").classList.remove("active");
+            drive.deselectAll();
         })
         // File upload
         window.addEventListener("dragenter", function(event) {
@@ -103,6 +101,7 @@ class DDrive {
     }
 
     refresh() {
+        // Refresh file list
         this.fileList = JSON.parse(window.localStorage.getItem(FILE_LIST_KEY) || "{}");
         this.sortOrder = [];
         for (let id in this.fileList) {
@@ -137,8 +136,8 @@ class DDrive {
             }
             link.innerHTML = `
                 <div class="col1">
-                    <span class="title">${metadata["title"]}</span>
-                    <span class="author">${metadata["author"]}</span>
+                    <span class="title">${escapeHTML(metadata["title"])}</span>
+                    <span class="author">${escapeHTML(metadata["author"])}</span>
                 </div>
                 <div class="col2">
                     <span class="size">${metadata["dimensions"][0]}×${metadata["dimensions"][1]}</span>
@@ -149,21 +148,25 @@ class DDrive {
                 <div class="icon delete" title="Delete"></div>
             `;
             link.addEventListener("click", function(event) {
-                drive.selectedID = metadata["uid"];
-                drive.element.querySelectorAll(".file-entry").forEach(element => {
-                    element.classList.remove("selected");
-                });
-                this.classList.add("selected");
-                window.setTimeout(() => drive.displayInfo(metadata["uid"]), 80);
+                if (drive.selectedID !== metadata["uid"]) {
+                    drive.selectedID = metadata["uid"];
+                    drive.element.querySelectorAll(".file-entry").forEach(element => {
+                        element.classList.remove("selected");
+                    });
+                    this.classList.add("selected");
+                    window.setTimeout(() => drive.displayInfo(metadata["uid"]), 40);
+                }
                 event.stopPropagation();
             });
-            link.addEventListener("dblclick", function() {
-                window.open(window.location.href.replace(/\?.*/, "") + `?uid=${metadata["uid"]}&style=${metadata["style"]}`);
-            });
-            link.querySelector(".open").addEventListener("click", function(event) {
-                window.open(window.location.href.replace(/\?.*/, "") + `?uid=${metadata["uid"]}&style=${metadata["style"]}`);
+            let openCreator = (event) => {
+                if (!drive.gotoOpenCreator(metadata["uid"])) {
+                    const url = window.location.href.replace(/\?.*/, "") + `?uid=${metadata["uid"]}&style=${metadata["style"]}`;
+                    drive.openedCreators[metadata["uid"]] = window.open(url);
+                }
                 event.stopPropagation();
-            });
+            };
+            link.addEventListener("dblclick", openCreator);
+            link.querySelector(".open").addEventListener("click", openCreator);
             link.querySelector(".download").addEventListener("click", function(event) {
                 // Update download link
                 let puzzle = DFile.loadFile(metadata["uid"]).puzzle;
@@ -187,6 +190,10 @@ class DDrive {
             });
             this.element.appendChild(link); 
         }
+        // Refresh file preview
+        if (this.selectedID !== null) {
+            this.displayInfo(this.selectedID);
+        }
     }
 
     displayInfo(id) {
@@ -205,11 +212,72 @@ class DDrive {
         document.querySelector("#file-info").classList.add("active");
     }
 
+    deselectAll() {
+        this.selectedID = null;
+        this.element.querySelectorAll(".file-entry").forEach(element => {
+            element.classList.remove("selected");
+        });
+        document.querySelector("#file-info").classList.remove("active");
+    }
+
+    gotoOpenCreator(id) {
+        try {
+            this.openedCreators[id].window.focus();
+            return true;
+        } catch (e) {
+            this.openedCreators[id] = null;
+            return false;
+        }
+    }
+
     deleteFile(id) {
-        window.localStorage.removeItem(`${FILE_SAVE_PREFIX}-${id}`);
         this.refresh();
+        // Check if editor is open
+        if (this.openedCreators[id]?.window) {
+            let notif = DNotification.create(`
+                This puzzle is open in another tab: <wbr />
+                <a data-action="open-creator">Go to Creator</a><br />
+                <a data-action="delete" style="color: var(--red-color);">Delete Anyway</a>
+            `, 6000);
+            notif.querySelector("a[data-action=open-creator]").addEventListener("click", () => this.gotoOpenCreator(id));
+            notif.querySelector("a[data-action=delete]").addEventListener("click", () => {
+                this.openedCreators[id]?.window?.close();
+                this.openedCreators[id] = null;
+                this.deleteFile(id);
+            });
+            return;
+        }
+        // Replace backup
+        if (this.lastDeleted) {
+            DNotification.remove(this.lastDeleted["notification"]);
+        }
+        this.lastDeleted = {
+            "id": id,
+            "metadata": this.fileList[id],
+            "puzzle": window.localStorage.getItem(`${FILE_SAVE_PREFIX}-${id}`),
+            "notification": null
+        };
+        // Delete and refresh view
+        window.localStorage.removeItem(`${FILE_SAVE_PREFIX}-${id}`);
         delete this.fileList[id];
         window.localStorage.setItem(FILE_LIST_KEY, JSON.stringify(this.fileList));
+        this.deselectAll();
+        this.refresh();
+        this.render();
+        // Show undo notification
+        let notif = this.lastDeleted["notification"] = DNotification.create(`
+            Deleted <strong>"${escapeHTML(this.lastDeleted["metadata"]["title"])}"</strong>
+            by <span>${escapeHTML(this.lastDeleted["metadata"]["author"])}</span>.<br />
+            <a data-action="restore">Undo?</a>
+        `, 30000);
+        notif.querySelector("a[data-action=restore]").addEventListener("click", () => this.restoreFile());
+    }
+
+    restoreFile() {
+        if (this.lastDeleted == null) return;
+        DNotification.remove(this.lastDeleted["notification"]);
+        new DFile(DFile.import(this.lastDeleted["puzzle"])).save();
+        this.lastDeleted = null;
         this.refresh();
         this.render();
     }
@@ -218,3 +286,18 @@ class DDrive {
 var drive = new DDrive(document.querySelector("#files"));
 
 drive.init();
+
+// Utility
+
+function escapeHTML(str) {
+    return str.replace(
+        /[&<>'"]/g,
+        tag => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            "'": '&#39;',
+            '"': '&quot;'
+        }[tag] || tag)
+    );
+}

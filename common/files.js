@@ -66,11 +66,10 @@ class DFile {
     static loadFile(id) {
         let fileList = JSON.parse(window.localStorage.getItem(FILE_LIST_KEY) || "{}");
         if (id in fileList) {
-            // let metadata = fileList[id];
             let puzzle = DFile.import(window.localStorage.getItem(`${FILE_SAVE_PREFIX}-${id}`));
             return new DFile(puzzle);
         }
-        throw new Error("File does not exist");
+        throw new FileNotFoundError("File does not exist");
     }
 
     // Export/Import
@@ -144,3 +143,6 @@ class DFile {
         throw new Error("Invalid format");
     }
 }
+
+
+class FileNotFoundError extends Error { }

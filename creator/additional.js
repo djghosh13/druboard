@@ -495,7 +495,13 @@ class SaveLoad {
                 this.removeAttribute("download");
             }
         }
-        this.autosaveHandler = function(event) {
+        this.autosaveHandler = function() {
+            try {
+                DFile.loadFile(sl.file.id);
+            } catch (e) {
+                if (e instanceof FileNotFoundError) return true;
+                throw e;
+            }
             if (!IS_EMBED) {
                 let modifyDate = (sl.lastChanged != -1) ? sl.lastChanged : null;
                 sl.file.update(sl.exportObject(), modifyDate);
@@ -538,8 +544,13 @@ class SaveLoad {
         if (window.sessionStorage.getItem("current-puzzle") == null) {
             window.location.replace(`../home/${INDEX_HTML}`);
         } else {
-            this.file = DFile.loadFile(window.sessionStorage.getItem("current-puzzle"));
-            this.file.update(this.file.puzzle);
+            try {
+                this.file = DFile.loadFile(window.sessionStorage.getItem("current-puzzle"));
+                this.file.update(this.file.puzzle);
+            } catch (e) {
+                if (e instanceof FileNotFoundError) window.location.replace(`../home/${INDEX_HTML}`);
+                throw e;
+            }
         }
         this.importObject(this.file.puzzle);
 

@@ -127,6 +127,7 @@ div.mode {
 a:link, a:hover, a:visited, a:active {
     color: inherit;
     text-decoration: inherit;
+	cursor: pointer;
 }
 
 span.toggle, span.toggle-theme {

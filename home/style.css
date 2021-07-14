@@ -2,8 +2,7 @@ body {
     font-size: var(--ui-size);
 
     --minor-text-color: var(--light, #464646) var(--dark, #c0c0c0);
-    --bg-gradient-start: var(--light, rgba(0, 0, 0, 1.0)) var(--dark, rgb(239, 239, 239, 0.8));
-    --bg-gradient-middle: var(--light, rgba(0, 0, 0, 0.5)) var(--dark, rgb(239, 239, 239, 0.4));
+    --bg-gradient-start: var(--light, rgba(0, 0, 0, 0.5)) var(--dark, rgb(239, 239, 239, 0.4));
     --bg-gradient-end: var(--light, rgba(0, 0, 0, 0)) var(--dark, rgba(239, 239, 239, 0));
 }
 
@@ -57,6 +56,11 @@ body {
 
 #files::-webkit-scrollbar {
 	display: none;
+}
+
+#files::after {
+    content: "";
+    padding: 1em;
 }
 
 #files .file-entry {
@@ -158,7 +162,7 @@ body {
     height: 60%;
     background-image: radial-gradient(circle closest-side,
         var(--bg-gradient-start) 0%,
-        var(--bg-gradient-middle) 30%,
+        var(--bg-gradient-start) 50%,
         var(--bg-gradient-end) 100%
     );
 }
