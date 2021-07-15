@@ -222,18 +222,19 @@ class DDrive {
 
     gotoOpenCreator(id) {
         try {
-            this.openedCreators[id].window.focus();
-            return true;
-        } catch (e) {
-            this.openedCreators[id] = null;
-            return false;
-        }
+            if (this.openedCreators[id].window.closed === false) {
+                this.openedCreators[id].window.focus();
+                return true;
+            }
+        } catch (e) { }
+        this.openedCreators[id] = null;
+        return false;
     }
 
     deleteFile(id) {
         this.refresh();
         // Check if editor is open
-        if (this.openedCreators[id]?.window) {
+        if (this.openedCreators[id]?.window?.closed === false) {
             let notif = DNotification.create(`
                 This puzzle is open in another tab: <wbr />
                 <a data-action="open-creator">Go to Creator</a><br />
