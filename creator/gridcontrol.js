@@ -507,6 +507,26 @@ class GridSelector {
         this.render();
     }
 
+    scrollClue(forward) {
+        const nclues = this.structure.clueToCell.length;
+        if (!this.selected) {
+            this.trySelect();
+            if (forward) return;
+        }
+        let clue = this.structure.getClue(...this.cell, this.direction);
+        let dx = forward ? 1 : nclues - 1;
+        let dir = this.direction;
+        for (let c = (clue + dx) % nclues;; c = (c + dx) % nclues) {
+            if ((c + dx) % (2 * nclues - 3) == 1) dir = otherDirection(dir); // This looks dumb
+            if (this.structure.clueToCell[c][dir].length) {
+                this.direction = dir;
+                this.cell = this.structure.clueToCell[c][dir][0]; // For Roy
+                break;
+            } else if (c == clue) return console.error("Wrapped around but no clue found");
+        }
+        this.render();
+    }
+
     selectClue(idx, dir) {
         if (this.structure.clueToCell.length <= idx || !this.structure.clueToCell[idx][dir].length) return;
         if (this.selected && this.structure.getClue(...this.cell, dir) == idx) {
@@ -619,13 +639,18 @@ class GridController {
             if (document.querySelector("#clues-across").contains(event.target) ||
                 document.querySelector("#clues-down").contains(event.target) ||
                 document.querySelector("#header").contains(event.target)) return;
-            // Undo and redo
             if (event.ctrlKey) {
+                // Undo and redo
                 if (event.key.toUpperCase() == "Z") {
                     game.prevAction();
                     event.preventDefault();
                 } else if (event.key.toUpperCase() == "Y") {
                     game.nextAction();
+                    event.preventDefault();
+                }
+                // Save
+                if (event.key.toUpperCase() == "S") {
+                    if (!IS_EMBED) DNotification.create("File saved.", 2500);
                     event.preventDefault();
                 }
                 return;
@@ -634,6 +659,11 @@ class GridController {
             if (event.key == "Escape") {
                 game.selector.selected = false;
                 game.selector.render();
+            }
+            // Tab (scroll through clues)
+            if (event.key == "Tab") {
+                game.selector.scrollClue(!event.shiftKey);
+                event.preventDefault();
             }
             // Typing
             if ("ABCDEFGHIJKLMNOPQRSTUVWXYZ".includes(event.key.toUpperCase())) {
