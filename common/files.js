@@ -8,8 +8,9 @@ class DFile {
     }
 
     update(puzzle, modifyDate = null) {
+        const immutableKeys = ["uid", "create_date", "style"];
         for (let key in this.puzzle["metadata"]) {
-            if (!(key in puzzle["metadata"])) {
+            if (immutableKeys.includes(key) || !(key in puzzle["metadata"])) {
                 puzzle["metadata"][key] = this.puzzle["metadata"][key];
             }
         }
