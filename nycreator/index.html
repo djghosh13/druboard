@@ -10,6 +10,7 @@
         <link rel="stylesheet" type="text/css" href="../fonts/milliard/style.css">
         <link rel="stylesheet" type="text/css" href="../common/style.css">
         <link rel="stylesheet" type="text/css" href="../common/color_theme.css">
+        <link rel="stylesheet" type="text/css" href="../common/help.css">
         <link rel="stylesheet" type="text/css" href="style.css">
         <script type="text/javascript" src="../common/notifs.js"></script>
         <script type="text/javascript" src="../common/files.js"></script>
@@ -23,6 +24,9 @@
             Import from File...
         </div>
         <div id="toolbar">
+            <div class="toolbar-item">
+                <div class="help-button">?</div>
+            </div>
             <div class="toolbar-item">
                 <h1 class="header">Width</h1>
                 <div class="input-row">
@@ -46,11 +50,11 @@
                 <h1 class="header">Mode</h1>
                 <div class="input-row">
                     <div class="single-select">
-                        <div class="mode" data-value="mark"></div>
+                        <div class="mode" data-value="mark" title="Edit Mode"></div>
                         <div class="selector selected"></div>
                     </div>
                     <div class="single-select">
-                        <div class="mode" data-value="write"></div>
+                        <div class="mode" data-value="write" title="Text-only Mode"></div>
                         <div class="selector"></div>
                     </div>
                 </div>
@@ -68,13 +72,6 @@
                 <div class="option" data-action="theme"><span class="toggle-theme">LIGHT</span><br/>Mode</div>
                 <div class="option" data-action="export" data-value="json">Copy JSON</div>
                 <!-- <a class="option internal-link" href="../creator/">Standard Creator</a> -->
-            </div>
-            <div class="toolbar-item">
-                <a id="rentable-link" href="https://ren-zhou.github.io/rentable/" target="_blank">
-                    <div class="label-tl">R</div>
-                    <div class="label-br">T</div>
-                    <div class="icon"></div>
-                </a>
             </div>
         </div>
         <div id="content">
@@ -106,6 +103,42 @@
             <h1 class="header">Down</h1>
             <div class="add-item" data-value="down">Add Clue...</div>
             <div id="clues-down" class="clues-list"></div>
+        </div>
+        <div id="help-box">
+            <h1 class="title">Reference</h1>
+            <table>
+                <tr>
+                    <td>
+                        <kbd class="key" title="Left Mouse Button">LMB</kbd>
+                    </td>
+                    <td>Select cell, toggle borders</td>
+                </tr>
+                <tr>
+                    <td>
+                        <kbd><kbd class="key">Ctrl</kbd>+<kbd class="key">Z</kbd></kbd>/<kbd><kbd class="key">Ctrl</kbd>+<kbd class="key">Y</kbd></kbd>
+                    </td>
+                    <td>Undo/Redo</td>
+                </tr>
+                <tr>
+                    <td>
+                        <kbd class="key">Tab</kbd>/<kbd><kbd class="key">Shift</kbd>+<kbd class="key">Tab</kbd></kbd>
+                    </td>
+                    <td>Cycle clues</td>
+                </tr>
+                <tr>
+                    <td>
+                        <kbd class="key">`</kbd>
+                    </td>
+                    <td>Edit selected clue text</td>
+                </tr>
+                <tr>
+                    <td>
+                        <kbd class="key">Esc</kbd>
+                    </td>
+                    <td>Deselect text box</td>
+                </tr>
+            </table>
+            Click to dismiss...
         </div>
         <div id="notifications"></div>
         <script type="text/javascript" src="main.js"></script>

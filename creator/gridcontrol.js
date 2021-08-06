@@ -633,12 +633,31 @@ class GridController {
                 document.querySelector("div.option[data-action=symmetry]").click();
             }
         }
+        // Help text
+        document.querySelector("div.help-button").addEventListener("click", function(event) {
+            document.querySelector("#help-box").classList.add("active");
+        })
+        document.querySelector("#help-box").addEventListener("click", function(event) {
+            this.classList.remove("active");
+        })
         // Keyboard controls
         document.addEventListener("keydown", function(event) {
-            if (event.repeat || event.altKey) return;
+            if (event.altKey) return;
+            if (document.querySelector("#help-box").classList.contains("active")) {
+                if (event.key == "Escape") {
+                    document.querySelector("#help-box").classList.remove("active");
+                }
+                event.preventDefault();
+                return;
+            }
             if (document.querySelector("#clues-across").contains(event.target) ||
                 document.querySelector("#clues-down").contains(event.target) ||
-                document.querySelector("#header").contains(event.target)) return;
+                document.querySelector("#header").contains(event.target)) {
+                if (event.key == "Escape") {
+                    event.target.blur();
+                }
+                return;
+            }
             if (event.ctrlKey) {
                 // Undo and redo
                 if (event.key.toUpperCase() == "Z") {
@@ -663,6 +682,20 @@ class GridController {
             // Tab (scroll through clues)
             if (event.key == "Tab") {
                 game.selector.scrollClue(!event.shiftKey);
+                event.preventDefault();
+            }
+            // Backtick (select clue)
+            if (event.key == "`") {
+                if (game.selector.selected) {
+                    let [i, j] = game.selector.cell;
+                    let clueidx = game.structure.cellToClue[i][j][game.selector.direction];
+                    for (let entry of document.querySelectorAll(`#clues-${game.selector.direction} > .clue-entry`)) {
+                        if (entry.querySelector(".clue-label").innerText == clueidx + 1) {
+                            entry.querySelector(".clue-desc").focus();
+                            break;
+                        }
+                    }
+                }
                 event.preventDefault();
             }
             // Typing

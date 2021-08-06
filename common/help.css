@@ -1,0 +1,66 @@
+#toolbar div.help-button {
+    font-size: 2em;
+    padding: 0;
+    border-radius: 50%;
+	width: 1.5em;
+	height: 1.5em;
+    line-height: 1.5em;
+    margin: 0 auto;
+    text-align: center;
+    border: var(--main-border-color) medium solid;
+    cursor: pointer;
+}
+
+#help-box {
+    --help-bg-color: var(--light, rgba(212, 230, 212, 70%)) var(--dark, rgb(0, 0, 0, 60%));
+}
+
+#help-box {
+    position: fixed;
+    z-index: 99;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: var(--help-bg-color);
+    color: var(--text-color);
+    cursor: default;
+    padding: 3em 2em;
+    border-radius: 0.5em;
+    font-size: var(--ui-size);
+    text-align: center;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    display: none;
+}
+
+#help-box.active {
+    display: block;
+}
+
+#help-box .title {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+#help-box table {
+    margin: 0.8em auto;
+    border-collapse: collapse;
+    background-color: var(--help-bg-color);
+}
+
+#help-box table, #help-box table td {
+    border: var(--main-border-color) solid thin;
+    padding: 0.6em 0.4em;
+    text-align: center;
+}
+
+#help-box kbd.key {
+    border: var(--main-border-color) solid thin;
+    border-radius: 0.25em;
+    padding: 0.15em 0.25em;
+    margin: 0.2em;
+    border-top-width: 1px;
+    border-bottom-width: 3px;
+    background-image: linear-gradient(to bottom, rgba(128, 128, 128, 30%) 0%, rgba(128, 128, 128, 40%) 30%, rgba(128, 128, 128, 10%) 100%);
+}

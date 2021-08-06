@@ -217,7 +217,8 @@ body {
     margin: 0.8em auto;
     background-size: contain;
     background-repeat: no-repeat;
-    background-image: url(../res/druboard_logo.svg);
+    /* Image */
+    background-image: url("../res/druboard_logo.svg");
     /* Animation */
     transform: rotate(0) scale(1);
     transition: transform 0.2s;
@@ -225,4 +226,61 @@ body {
 
 #navbar #druboard-logo:hover {
     transform: rotate(20deg) scale(0.95);
+}
+
+/* Rentable link */
+
+a#rentable-link {
+	display: block;
+    position: relative;
+    bottom: 0px;
+    left: 0px;
+    width: 2.5em;
+    height: 2.5em;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    font-size: 1.4em;
+    margin: auto;
+}
+
+a#rentable-link:hover, a#rentable-link:visited, a#rentable-link:link, a#rentable-link:active {
+    color: inherit;
+    text-decoration: none;
+}
+
+a#rentable-link .icon {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-size: cover;
+    width: 100%;
+    height: 100%;
+    /* Image */
+    background-image: url("../res/rentable_logo.svg");
+	box-shadow: 0 0 12px var(--rentable-shadow-color);
+    /* Animation */
+    transform: rotate(0);
+    transition: transform 0.3s;
+}
+
+a#rentable-link:hover .icon {
+    transform: rotate(-0.5turn);
+}
+
+a#rentable-link .label-tl, a#rentable-link .label-br {
+    position: absolute;
+    height: 50%;
+    width: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+a#rentable-link .label-tl {
+    top: 4%;
+    left: 4%;
+}
+
+a#rentable-link .label-br {
+    bottom: 3%;
+    right: 4.2%;
 }
