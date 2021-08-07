@@ -1,4 +1,4 @@
-#toolbar div.help-button {
+/* #toolbar div.help-button {
     font-size: 2em;
     padding: 0;
     border-radius: 50%;
@@ -9,10 +9,25 @@
     text-align: center;
     border: var(--main-border-color) medium solid;
     cursor: pointer;
+} */
+
+#toolbar div.help-button {
+	position: relative;
+	width: calc(var(--ui-size) * 3.5);
+	height: calc(var(--ui-size) * 3.5);
+    margin: 0 auto;
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-position: center;
+	cursor: pointer;
+    background-image:
+        var(--light, url("../res/help.svg"))
+        var(--dark, url("../res/help_dark.svg"))
+    ;
 }
 
 #help-box {
-    --help-bg-color: var(--light, rgba(212, 230, 212, 70%)) var(--dark, rgb(0, 0, 0, 60%));
+    --help-bg-color: var(--light, rgba(212, 230, 212, 75%)) var(--dark, rgb(0, 0, 0, 60%));
 }
 
 #help-box {
