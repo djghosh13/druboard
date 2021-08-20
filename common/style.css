@@ -457,6 +457,7 @@ div.add-item {
 		display: block;
 		flex-direction: column;
 		--cell-size: calc(min(calc(7.5in / max(8, var(--grid-width))), calc(8.5in / var(--grid-height))) - 2px);
+		--ui-size: 12pt;
 		font-family: Georgia, 'Times New Roman', Times, serif;
 		
 		--light: var(--ON) !important;
