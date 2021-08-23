@@ -642,7 +642,7 @@ class GridController {
         })
         // Keyboard controls
         document.addEventListener("keydown", function(event) {
-            if (event.altKey) return;
+            if (event.altKey || (event.metaKey && !navigator.platform.startsWith("Mac"))) return;
             if (document.querySelector("#help-box").classList.contains("active")) {
                 if (event.key == "Escape") {
                     document.querySelector("#help-box").classList.remove("active");
@@ -658,7 +658,7 @@ class GridController {
                 }
                 return;
             }
-            if (event.ctrlKey) {
+            if (event.ctrlKey || (event.metaKey && navigator.platform.startsWith("Mac"))) {
                 // Undo and redo
                 if (event.key.toUpperCase() == "Z") {
                     game.prevAction();
