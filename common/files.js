@@ -28,6 +28,7 @@ class DFile {
             "author": this.puzzle["metadata"]["author"] || "",
             "style": this.puzzle["metadata"]["style"] || "standard",
             "valid": this.puzzle["metadata"]["valid"] || false,
+            "nclues": this.puzzle["metadata"]["nclues"] || 0,
             "dimensions": this.puzzle["dimensions"],
             "create_date": this.puzzle["metadata"]["create_date"] || 0,
             "access_date": this.puzzle["metadata"]["access_date"] || 0,

@@ -55,6 +55,41 @@ class DDrive {
             if (document.querySelector("#file-info").contains(event.target)) return;
             drive.deselectAll();
         })
+        // Download backup
+        document.querySelector("div.option[data-action=backup]").addEventListener("click", function(event) {
+            drive.refresh();
+            // JSZip
+            var zip = JSZip();
+            // Save every puzzle
+            for (let id of drive.sortOrder) {
+                let metadata = drive.fileList[id];
+                let puzzle = DFile.loadFile(metadata["uid"]).puzzle;
+                let filename = puzzle["metadata"]["title"].replace(/\W/g, "") || "puzzle";
+                let data = DFile.export(puzzle, "exf");
+                zip.file(`${metadata["uid"]}_${filename}.exf`, data);
+            }
+            // Create zip
+            zip.generateAsync({
+                "type": "blob",
+                compression: "DEFLATE",
+                compressionOptions: {
+                    level: 6
+                }
+            }).then(function(blob) {
+                // Generate backup file name
+                const date = new Date();
+                let filename = "druboard_backup_" +
+                    date.getFullYear().toString().padStart(4, 0) +
+                    (date.getMonth() + 1).toString().padStart(2, 0) +
+                    date.getDate().toString().padStart(2, 0) + ".zip";
+                // Create download link
+                let url = URL.createObjectURL(blob);
+                let notif = DNotification.create(`
+                    Backup ready:<br />
+                    <a href="${url}" download="${filename}">${filename}</a>
+                `);
+            })
+        })
         // File upload
         window.addEventListener("dragenter", function(event) {
             drive.lastDropTarget = event.target;
@@ -68,29 +103,31 @@ class DDrive {
         window.addEventListener("drop", function(event) {
             event.preventDefault();
             document.querySelector(".dropzone").classList.remove("active");
-            let reader = new FileReader();
-            reader.readAsText(event.dataTransfer.files[0]);
-            reader.onloadend = () => {
-                try {
-                    let puzzle = DFile.import(reader.result, DFile.detectFormat(reader.result));
-                    let style = puzzle["metadata"]["style"] || "standard";
-                    let valid = (style == "standard") ? SaveLoad.validateObject(puzzle) : NYSaveLoad.validateObject(puzzle);
-                    switch (valid) {
-                        case "valid":
-                            let file = new DFile(puzzle);
-                            file.save();
-                            DNotification.create("Imported puzzle", 4000);
-                            drive.refresh();
-                            drive.render();
-                            break;
-                        case "incomplete":
-                            DNotification.create("To import older versions, create a new puzzle and import from the editor", 10000);
-                            break;
-                        default:
-                            DNotification.create("Error: Invalid puzzle", 5000);
+            for (let infile of event.dataTransfer.files) {
+                let reader = new FileReader();
+                reader.readAsText(infile);
+                reader.onloadend = () => {
+                    try {
+                        let puzzle = DFile.import(reader.result, DFile.detectFormat(reader.result));
+                        let style = puzzle["metadata"]["style"] || "standard";
+                        let valid = (style == "standard") ? SaveLoad.validateObject(puzzle) : NYSaveLoad.validateObject(puzzle);
+                        switch (valid) {
+                            case "valid":
+                                let file = new DFile(puzzle);
+                                file.save();
+                                DNotification.create(`${infile.name}<br /> Imported puzzle successfully`, 2500);
+                                drive.refresh();
+                                drive.render();
+                                break;
+                            case "incomplete":
+                                DNotification.create(`${infile.name}<br /> To import older versions, create a new puzzle and import from the editor`, 10000);
+                                break;
+                            default:
+                                DNotification.create(`${infile.name}<br /> Error: Invalid puzzle`, 6000);
+                        }
+                    } catch (err) {
+                        DNotification.create(`${infile.name}<br /> Error: Unrecognized format`, 6000);
                     }
-                } catch (err) {
-                    DNotification.create("Error: Unrecognized format", 5000);
                 }
             }
         });
@@ -201,6 +238,7 @@ class DDrive {
         let infoTable = document.querySelector("#file-info .info table");
         infoTable.querySelector(".title[data-value=title]").innerText = metadata["title"];
         infoTable.querySelector(".value[data-value=author]").innerText = metadata["author"];
+        infoTable.querySelector(".value[data-value=clues]").innerText = metadata["nclues"];
         infoTable.querySelector(".value[data-value=dimensions]").innerText = `${metadata["dimensions"][0]}×${metadata["dimensions"][1]}`;
         infoTable.querySelector(".value[data-value=style]").innerText = metadata["style"];
         infoTable.querySelector(".value[data-value=modify_date]").innerText = new Date(metadata["modify_date"]).toLocaleString();

@@ -13,7 +13,8 @@ class NYSaveLoad extends SaveLoad {
                 "style": "new-yorker",
                 "valid": true,
                 "title": "",
-                "author": ""
+                "author": "",
+                "nclues": 0
             },
             "dimensions": [],
             "answers": [],
@@ -28,6 +29,10 @@ class NYSaveLoad extends SaveLoad {
         // Metadata
         puzzle["metadata"]["title"] = document.querySelector(".head-title").innerText;
         puzzle["metadata"]["author"] = document.querySelector(".head-byline").innerText;
+        // Count number of possible clues
+        for (let clue of gc.structure.clueToCell) {
+            puzzle["metadata"]["nclues"] += (clue["across"].length != 0) + (clue["down"].length != 0);
+        }
         // Get dimensions
         puzzle["dimensions"] = [gc.grid.width, gc.grid.height];
         // Fill in answers
