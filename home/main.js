@@ -66,7 +66,7 @@ class DDrive {
                 let puzzle = DFile.loadFile(metadata["uid"]).puzzle;
                 let filename = puzzle["metadata"]["title"].replace(/\W/g, "") || "puzzle";
                 let data = DFile.export(puzzle, "exf");
-                zip.file(`${metadata["uid"]}_${filename}.exf`, data);
+                zip.file(`${filename}_${metadata["uid"]}.exf`, data);
             }
             // Create zip
             zip.generateAsync({
@@ -210,7 +210,7 @@ class DDrive {
                 let filename = puzzle["metadata"]["title"].replace(/\W/g, "") || "puzzle";
                 let data = DFile.export(puzzle, this.getAttribute("data-value"));
                 if (data) {
-                    this.setAttribute("href", "data:;base64," + btoa(data));
+                    this.setAttribute("href", "data:;base64," + Base64.encode(data));
                     this.setAttribute("download", filename + "." + this.getAttribute("data-value"));
                 } else {
                     this.removeAttribute("href");

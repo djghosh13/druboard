@@ -80,7 +80,7 @@ class DFile {
             case "json":
                 return JSON.stringify(puzzle);
             case "exf":
-                return "*" + btoa(JSON.stringify(puzzle));
+                return "*" + Base64.encode(JSON.stringify(puzzle));
             case "puz":
                 // Rename metadata and add copyright
                 puzzle["meta"] = puzzle["metadata"];
@@ -127,9 +127,9 @@ class DFile {
             case "json":
                 return JSON.parse(string);
             case "exf":
-                return JSON.parse(atob(string.substring(1)));
+                return JSON.parse(Base64.decode(string.substring(1)));
             case "rxf":
-                return JSON.parse(atob(string.substring(1)))["boardData"];
+                return JSON.parse(Base64.decode(string.substring(1)))["boardData"];
             case "puz":
                 throw "puz-import";
             default:

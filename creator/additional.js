@@ -488,7 +488,7 @@ class SaveLoad {
             let filename = puzzle["metadata"]["title"].replace(/\W/g, "") || "puzzle";
             let data = DFile.export(puzzle, this.getAttribute("data-value"));
             if (data) {
-                this.setAttribute("href", "data:;base64," + btoa(data));
+                this.setAttribute("href", "data:;base64," + Base64.encode(data));
                 this.setAttribute("download", filename + "." + this.getAttribute("data-value"));
             } else {
                 this.removeAttribute("href");
